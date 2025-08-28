@@ -1,20 +1,20 @@
-# BoilerPlates.Express_Postgres
+# BoilerPlates.Express_Mongo
 
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)
 ![Express](https://img.shields.io/badge/Express-4-black?logo=express)
-![Postgres](https://img.shields.io/badge/Postgres-17-blue?logo=postgresql)
+![MongoDB](https://img.shields.io/badge/MongoDB-6.green?logo=mongodb)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-A boilerplate setup for running an **Express.js** backend with **PostgreSQL** using Docker Compose.
-This repository provides a ready-to-use Express API connected to a PostgreSQL database for rapid backend development.
+A boilerplate setup for running an **Express.js** backend with **MongoDB** using Docker Compose.
+This repository provides a ready-to-use Express API connected to a MongoDB database for rapid backend development.
 
 ---
 
 ## 🚀 Features
 
 - Express.js REST API
-- PostgreSQL database in a Docker container
-- pgAdmin 4 for database administration
+- MongoDB database in a Docker container
+- Mongo Express for database administration
 - Environment-based configuration
 - Dockerized for easy setup and deployment
 
@@ -23,7 +23,7 @@ This repository provides a ready-to-use Express API connected to a PostgreSQL da
 ## 📂 Project Structure
 
 ```
-BoilerPlates.Express_Postgres/
+BoilerPlates.Express_Mongo/
 └───src/
    ├───server.js
    ├───middlewares/
@@ -60,8 +60,8 @@ BoilerPlates.Express_Postgres/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/ThisIsTheWizard/BoilerPlates.Express_Postgres.git
-cd BoilerPlates.Express_Postgres
+git clone https://github.com/ThisIsTheWizard/BoilerPlates.Express_Mongo.git
+cd BoilerPlates.Express_Mongo
 ```
 
 ### 2. Install dependencies
@@ -72,12 +72,12 @@ npm install
 
 ### 3. Configure environment variables
 
-Rename the `.env.sample` file into .env and customize as per need:
+Rename the `.env.sample` file into `.env` and customize as needed (MongoDB URI, ports, credentials, etc.)
 
 ### 4. Start services
 
 ```bash
-docker-compose up -d -build
+docker-compose up -d --build
 ```
 
 ---
@@ -85,8 +85,8 @@ docker-compose up -d -build
 ## 🌐 Access
 
 - **Express API** → `http://localhost:8000`
-- **PostgreSQL** → `localhost:5432`
-- **pgAdmin** → [http://localhost:8080](http://localhost:8080)
+- **MongoDB** → `mongodb://localhost:27017`
+- **Mongo Express** → [http://localhost:8081](http://localhost:8081)
   - Login with credentials from `.env`
 
 ---
@@ -96,7 +96,7 @@ docker-compose up -d -build
 - Start containers:
 
   ```bash
-  docker-compose up -d -build
+  docker-compose up -d --build
   ```
 
 - Stop containers:
@@ -124,8 +124,8 @@ docker-compose up -d -build
 Data is persisted via Docker volumes:
 
 - `node_server_data` → Stores Node server files for hot reload in dev mode
-- `postgres_admin_data` → Stores pgAdmin configuration
-- `postgres_data` → Stores PostgreSQL database files
+- `mongo_express_data` → Stores Mongo Express configuration
+- `mongo_data` → Stores MongoDB database files
 
 ---
 
