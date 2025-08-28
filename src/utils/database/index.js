@@ -5,7 +5,6 @@ require('dotenv').config()
 
 export const connectToMongoDB = async () => {
   try {
-    console.log({ MONGO_URL: process.env.MONGO_URL })
     await mongoose.connect(process.env.MONGO_URL)
 
     console.log('Connection has been established successfully to database')
