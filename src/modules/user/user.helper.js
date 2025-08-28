@@ -6,11 +6,19 @@ import { User } from 'src/modules/models'
 // Helpers
 import { commonHelper, roleHelper } from 'src/modules/helpers'
 
-export const countUsers = async (options) => User.countDocuments(options?.where)
+export const countUsers = async (query) => User.countDocuments(query)
 
-export const getAUser = async (options, transaction) => User.findOne(options?.where).session(transaction)
+export const getAUser = async (options, session) => {
+  const { populate, query, select, skip, sort } = options || {}
 
-export const getUsers = async (options, transaction) => User.find(options?.where).session(transaction)
+  return User.findOne(query, select, { populate, skip, sort }).session(session)
+}
+
+export const getUsers = async (options, session) => {
+  const { limit, populate, query, select, skip, sort } = options || {}
+
+  return User.find(query, select, { limit, populate, skip, sort }).session(session)
+}
 
 export const prepareUsersQuery = (params) => {
   const { email, search_keyword, status } = params || {}
@@ -32,7 +40,7 @@ export const prepareUsersQuery = (params) => {
 export const getAUserForQuery = async (query) => {
   commonHelper.checkRequiredFields(['entity_id'], query)
 
-  return getAUser({ where: { _id: query.entity_id }, select: 'id email first_name last_name status' })
+  return getAUser({ query: { _id: query.entity_id }, select: 'id email first_name last_name status' })
 }
 
 export const getUsersForQuery = async (params, options) => {

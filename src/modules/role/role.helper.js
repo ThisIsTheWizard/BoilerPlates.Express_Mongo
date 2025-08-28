@@ -13,7 +13,7 @@ export const countRoles = async (options, session) => Role.countDocuments(option
 
 export const getARole = async (options, session) => Role.findOne(options?.where).session(session)
 
-export const getRoles = async (options, transaction) => Role.find(options?.where).session(transaction)
+export const getRoles = async (options, session) => Role.find(options?.where).session(session)
 
 export const prepareRoleQuery = (params = {}) => {
   const query = {}

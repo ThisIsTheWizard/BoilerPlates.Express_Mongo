@@ -15,33 +15,32 @@ export const createARolePermission = async (data, options, session) => {
   return head(rolePermissions)
 }
 
-export const createRolePermissions = async (data, options, transaction) =>
-  RolePermission.insertMany(data, { session: transaction })
+export const createRolePermissions = async (data, options, session) => RolePermission.insertMany(data, { session })
 
-export const updateARolePermission = async (options, data, transaction) => {
-  const rolePermission = await rolePermissionHelper.getARolePermission(options, transaction)
+export const updateARolePermission = async (options, data, session) => {
+  const rolePermission = await rolePermissionHelper.getARolePermission(options, session)
   if (!rolePermission?._id) {
     throw new CustomError(404, 'ROLE_PERMISSION_NOT_FOUND')
   }
 
   Object.assign(rolePermission, data)
-  await rolePermission.save({ session: transaction })
+  await rolePermission.save({ session })
 
   return rolePermission
 }
 
-export const deleteARolePermission = async (options, transaction) => {
-  const rolePermission = await rolePermissionHelper.getARolePermission(options, transaction)
+export const deleteARolePermission = async (options, session) => {
+  const rolePermission = await rolePermissionHelper.getARolePermission(options, session)
   if (!rolePermission?._id) {
     throw new CustomError(404, 'ROLE_PERMISSION_NOT_FOUND')
   }
 
-  await rolePermission.deleteOne({ session: transaction })
+  await rolePermission.deleteOne({ session })
 
   return rolePermission
 }
 
-export const createARolePermissionForMutation = async (params, user, transaction) => {
+export const createARolePermissionForMutation = async (params, user, session) => {
   commonHelper.validateProps(
     [
       { field: 'can_do_the_action', required: true, type: 'boolean' },
@@ -53,17 +52,17 @@ export const createARolePermissionForMutation = async (params, user, transaction
 
   const { can_do_the_action, permission_id, role_id } = params || {}
 
-  const role = await roleHelper.getARole({ where: { _id: role_id } }, transaction)
+  const role = await roleHelper.getARole({ where: { _id: role_id } }, session)
   if (!role?._id) {
     throw new CustomError(404, 'ROLE_DOES_NOT_EXIST')
   }
 
-  const permission = await permissionHelper.getAPermission({ where: { _id: permission_id } }, transaction)
+  const permission = await permissionHelper.getAPermission({ where: { _id: permission_id } }, session)
   if (!permission?._id) {
     throw new CustomError(404, 'PERMISSION_DOES_NOT_EXIST')
   }
 
-  const existingRolePerm = await rolePermissionHelper.getARolePermission({ permission_id, role_id }, transaction)
+  const existingRolePerm = await rolePermissionHelper.getARolePermission({ permission_id, role_id }, session)
   if (existingRolePerm?._id) {
     throw new CustomError(400, 'ROLE_PERMISSION_ALREADY_EXISTS')
   }
@@ -71,13 +70,13 @@ export const createARolePermissionForMutation = async (params, user, transaction
   const rolePermission = await createARolePermission(
     { can_do_the_action, permission_id, role_id, created_by: user._id },
     null,
-    transaction
+    session
   )
 
   return rolePermission
 }
 
-export const updateARolePermissionForMutation = async (params, user, transaction) => {
+export const updateARolePermissionForMutation = async (params, user, session) => {
   commonHelper.validateProps(
     [
       { field: 'entity_id', required: true, type: 'string' },
@@ -88,11 +87,11 @@ export const updateARolePermissionForMutation = async (params, user, transaction
 
   const { entity_id, can_do_the_action } = params || {}
 
-  return updateARolePermission({ where: { _id: entity_id } }, { can_do_the_action, updated_by: user?._id }, transaction)
+  return updateARolePermission({ where: { _id: entity_id } }, { can_do_the_action, updated_by: user?._id }, session)
 }
 
-export const deleteARolePermissionForMutation = async (params, transaction) => {
+export const deleteARolePermissionForMutation = async (params, session) => {
   commonHelper.validateProps([{ field: 'entity_id', required: true, type: 'string' }], params)
 
-  return deleteARolePermission({ where: { _id: params?.entity_id } }, transaction)
+  return deleteARolePermission({ where: { _id: params?.entity_id } }, session)
 }

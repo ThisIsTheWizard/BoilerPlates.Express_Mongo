@@ -11,9 +11,9 @@ import { CustomError } from 'src/utils/error'
 
 export const countRoleUsers = async (options, session) => RoleUser.countDocuments(options).session(session)
 
-export const getARoleUser = async (options, transaction) => RoleUser.findOne(options).session(transaction)
+export const getARoleUser = async (options, session) => RoleUser.findOne(options).session(session)
 
-export const getRoleUsers = async (options, transaction) => RoleUser.find(options).session(transaction)
+export const getRoleUsers = async (options, session) => RoleUser.find(options).session(session)
 
 export const prepareRoleUserQuery = (params) => {
   const query = {}

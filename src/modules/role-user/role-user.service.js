@@ -35,7 +35,7 @@ export const deleteARoleUser = async (options, session) => {
   return roleUser
 }
 
-export const createARoleUserForMutation = async (params, transaction) => {
+export const createARoleUserForMutation = async (params, session) => {
   commonHelper.validateProps(
     [
       { field: 'role_id', required: true, type: 'string' },
@@ -46,25 +46,25 @@ export const createARoleUserForMutation = async (params, transaction) => {
 
   const { role_id, user_id } = params || {}
 
-  const role = await roleHelper.getARole({ where: { _id: role_id } }, transaction)
+  const role = await roleHelper.getARole({ where: { _id: role_id } }, session)
   if (!role?._id) {
     throw new CustomError(404, 'ROLE_DOES_NOT_EXIST')
   }
 
-  const user = await userHelper.getAUser({ where: { _id: user_id } }, transaction)
+  const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
   if (!user?._id) {
     throw new CustomError(404, 'USER_DOES_NOT_EXIST')
   }
 
-  const existingRoleUser = await roleUserHelper.getARoleUser({ role_id, user_id }, transaction)
+  const existingRoleUser = await roleUserHelper.getARoleUser({ role_id, user_id }, session)
   if (existingRoleUser?._id) {
     throw new CustomError(400, 'ROLE_USER_ALREADY_EXISTS')
   }
 
-  return createARoleUser({ role_id, user_id }, null, transaction)
+  return createARoleUser({ role_id, user_id }, null, session)
 }
 
-export const updateARoleUserForMutation = async (params, transaction) => {
+export const updateARoleUserForMutation = async (params, session) => {
   commonHelper.validateProps(
     [
       { field: 'entity_id', required: true, type: 'string' },
@@ -83,19 +83,19 @@ export const updateARoleUserForMutation = async (params, transaction) => {
   const { entity_id, data } = params || {}
   const { role_id, user_id } = data || {}
 
-  const roleUser = await roleUserHelper.getARoleUser({ _id: entity_id }, transaction)
+  const roleUser = await roleUserHelper.getARoleUser({ _id: entity_id }, session)
   if (!roleUser?._id) {
     throw new CustomError(404, 'ROLE_USER_DOES_NOT_EXIST')
   }
 
   if (role_id) {
-    const role = await roleHelper.getARole({ where: { _id: role_id } }, transaction)
+    const role = await roleHelper.getARole({ where: { _id: role_id } }, session)
     if (!role?._id) {
       throw new CustomError(404, 'ROLE_DOES_NOT_EXIST')
     }
   }
   if (user_id) {
-    const user = await userHelper.getAUser({ where: { _id: user_id } }, transaction)
+    const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
     if (!user?._id) {
       throw new CustomError(404, 'USER_DOES_NOT_EXIST')
     }
@@ -103,40 +103,40 @@ export const updateARoleUserForMutation = async (params, transaction) => {
 
   const existingRoleUser = await roleUserHelper.getARoleUser(
     { role_id: role_id || roleUser?.role_id, user_id: user_id || roleUser?.user_id },
-    transaction
+    session
   )
   if (existingRoleUser?._id) {
     throw new CustomError(400, 'ROLE_USER_ALREADY_EXISTS')
   }
 
   Object.assign(roleUser, params?.data)
-  await roleUser.save({ session: transaction })
+  await roleUser.save({ session })
 
   return roleUser
 }
 
-export const deleteARoleUserForMutation = async (params, transaction) => {
+export const deleteARoleUserForMutation = async (params, session) => {
   commonHelper.validateProps([{ field: 'entity_id', required: true, type: 'string' }], params)
 
-  return deleteARoleUser({ where: { _id: params?.entity_id } }, transaction)
+  return deleteARoleUser({ where: { _id: params?.entity_id } }, session)
 }
 
-export const assignARoleToUserByName = async (params, transaction) => {
+export const assignARoleToUserByName = async (params, session) => {
   commonHelper.validateRequiredProps(['role_name', 'user_id'], params)
 
   const roleUserCreationData = { user_id: params?.user_id }
 
-  const role = await roleHelper.getARole({ where: { name: params?.role_name } }, transaction)
+  const role = await roleHelper.getARole({ where: { name: params?.role_name } }, session)
   if (!role?._id) {
     throw new CustomError(404, 'ROLE_DOES_NOT_EXIST')
   }
 
   roleUserCreationData.role_id = role._id
 
-  return createARoleUser(roleUserCreationData, null, transaction)
+  return createARoleUser(roleUserCreationData, null, session)
 }
 
-export const revokeARoleFromUserByName = async (params, transaction) => {
+export const revokeARoleFromUserByName = async (params, session) => {
   commonHelper.validateRequiredProps(['role_name', 'user_id'], params)
 
   const role = await roleHelper.getARole({ where: { name: params?.role_name } })
@@ -146,7 +146,7 @@ export const revokeARoleFromUserByName = async (params, transaction) => {
 
   const removedRoleUser = await roleUserService.deleteARoleUser(
     { where: { user_id: params?.user_id, role_id: role?._id } },
-    transaction
+    session
   )
   if (!removedRoleUser?._id) {
     throw new CustomError(500, 'COULD_NOT_REMOVE_ROLE_USER')

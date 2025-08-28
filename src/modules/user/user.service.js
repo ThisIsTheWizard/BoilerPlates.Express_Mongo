@@ -13,30 +13,29 @@ import { authTokenService, commonService, roleUserService, verificationTokenServ
 // Utils
 import { CustomError } from 'src/utils/error'
 
-export const createAUser = async (data, options, session) => {
-  const users = await User.create([data], { session })
-  return users[0]
+export const createAUser = async (data, session) => {
+  const [user] = await User.create([data], { session })
+  return user
 }
 
 export const updateAUser = async (options, data, session) => {
-  const user = await User.findOne(options.where).session(session)
-  if (!user?._id) {
-    throw new CustomError(404, 'USER_NOT_FOUND')
-  }
+  const { query, skip, sort } = options || {}
 
-  Object.assign(user, data)
-  await user.save({ session })
+  const user = await User.findOneAndUpdate(query, data, { new: true, skip, sort }).session(session)
+  if (!user?._id) {
+    throw new CustomError(404, 'USER_DOES_NOT_EXISTS')
+  }
 
   return user
 }
 
 export const deleteAUser = async (options, session) => {
-  const user = await User.findOne(options.where).session(session)
-  if (!user?._id) {
-    throw new CustomError(404, 'USER_NOT_FOUND')
-  }
+  const { query, skip, sort } = options || {}
 
-  await user.deleteOne({ session })
+  const user = await User.findOneAndDelete(query, { skip, sort }).session(session)
+  if (!user?._id) {
+    throw new CustomError(404, 'USER_DOES_NOT_EXISTS')
+  }
 
   return user
 }
@@ -57,14 +56,13 @@ export const registerUser = async (params = {}, session) => {
     throw new Error('PASSWORD_DID_NOT_CONFORM_OUR_POLICY')
   }
 
-  const existingUser = await userHelper.getAUser({ email }, session)
+  const existingUser = await userHelper.getAUser({ query: { email }, select: 'id' }, session)
   if (existingUser?._id) {
     throw new Error('EMAIL_IS_ALREADY_ASSOCIATED_WITH_A_USER')
   }
 
   const user = await createAUser(
     { email, first_name, last_name, password: commonService.generateHashPassword(password) },
-    null,
     session
   )
   if (!user?._id) {
@@ -78,7 +76,7 @@ export const registerUser = async (params = {}, session) => {
     session
   )
 
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const verifyUserEmail = async (params = {}, session) => {
@@ -94,22 +92,16 @@ export const verifyUserEmail = async (params = {}, session) => {
 
   await verificationTokenService.validateVerificationTokenForUser({ email, token, type: 'user_verification' }, session)
 
-  const user = await userHelper.getAUser({ email }, session)
-  if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
-  }
+  const user = await updateAUser({ query: { email } }, { status: 'active' }, session)
 
-  user.status = 'active'
-  await user.save({ session })
-
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const resendUserVerificationEmail = async (params = {}, session) => {
   commonHelper.validateProps([{ field: 'email', required: true, type: 'string' }], params)
 
   const { email } = params || {}
-  const user = await userHelper.getAUser({ $or: [{ email }, { new_email: email }] }, session)
+  const user = await userHelper.getAUser({ query: { $or: [{ email }, { new_email: email }] } }, session)
   if (!user?._id) {
     throw new Error('USER_DOES_NOT_EXIST')
   }
@@ -141,7 +133,7 @@ export const resendUserVerificationEmail = async (params = {}, session) => {
     session
   )
 
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const loginUser = async (params = {}, session) => {
@@ -154,7 +146,8 @@ export const loginUser = async (params = {}, session) => {
   )
 
   const { email, password } = params || {}
-  const user = await userHelper.getAUser({ email }, session) // TODO: populate roles
+
+  const user = await userHelper.getAUser({ populate: 'roles', query: { email } }, session)
   if (!user?._id) {
     throw new Error('USER_DOES_NOT_EXIST')
   }
@@ -184,9 +177,9 @@ export const refreshTokensForUser = async (params = {}, session) => {
   const { access_token, refresh_token } = params || {}
   const { user_id } = commonService.decodeJWTToken(access_token) || {}
 
-  const user = await userHelper.getAUser({ _id: user_id })
+  const user = await userHelper.getAUser({ populate: 'roles', query: { _id: user_id } }, session)
 
-  return authTokenService.refreshAuthTokensForUser({ refresh_token, roles: user?.roles, user_id }, session)
+  return authTokenService.refreshAuthTokensForUser({ refresh_token, roles: map(user?.roles, 'name'), user_id }, session)
 }
 
 export const changeEmailByUser = async (params = {}, session) => {
@@ -204,21 +197,15 @@ export const changeEmailByUser = async (params = {}, session) => {
     throw new Error('EMAIL_IS_INVALID')
   }
 
-  const existingUser = await userHelper.getAUser({ $or: [{ email: new_email }, { new_email }] }, session)
+  const existingUser = await userHelper.getAUser({ query: { $or: [{ email: new_email }, { new_email }] } }, session)
   if (existingUser?._id) {
     throw new Error('NEW_EMAIL_IS_ALREADY_ASSOCIATED_WITH_A_USER')
   }
 
-  const user = await userHelper.getAUser({ _id: user_id }, session)
-  if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
-  }
+  const user = await updateAUser({ query: { _id: user_id } }, { new_email }, session)
   if (!(user?.status === 'active')) {
     throw new Error(`USER_IS_${user?.status?.toUpperCase?.()}`)
   }
-
-  user.new_email = new_email
-  await user.save({ session })
 
   await verificationTokenService.deleteVerificationTokens(
     {
@@ -235,7 +222,7 @@ export const changeEmailByUser = async (params = {}, session) => {
     session
   )
 
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const cancelChangeEmailByUser = async (params, session) => {
@@ -243,16 +230,10 @@ export const cancelChangeEmailByUser = async (params, session) => {
 
   const { email } = params || {}
 
-  const user = await userHelper.getAUser({ new_email: email }, session)
-  if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
-  }
+  const user = await updateAUser({ query: { new_email: email } }, { new_email: null }, session)
   if (!(user?.status === 'active')) {
     throw new Error(`USER_IS_${user?.status?.toUpperCase?.()}`)
   }
-
-  user.new_email = null
-  await user.save({ session })
 
   const deletedTokens = await verificationTokenService.deleteVerificationTokens(
     {
@@ -267,7 +248,7 @@ export const cancelChangeEmailByUser = async (params, session) => {
     throw new Error('NO_CHANGE_EMAIL_REQUEST_IS_FOUND')
   }
 
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const verifyChangeEmailByUser = async (params = {}, session) => {
@@ -286,19 +267,12 @@ export const verifyChangeEmailByUser = async (params = {}, session) => {
     session
   )
 
-  const user = await userHelper.getAUser({ _id: user_id }, session)
-  if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
-  }
+  const user = await updateAUser({ query: { _id: user_id } }, { email: user?.new_email, new_email: null }, session)
   if (!(user?.status === 'active')) {
     throw new Error(`USER_IS_${user?.status?.toUpperCase?.()}`)
   }
 
-  user.email = user.new_email
-  user.new_email = null
-  await user.save({ session })
-
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const setUserEmailByAdmin = async (params = {}, session) => {
@@ -312,21 +286,14 @@ export const setUserEmailByAdmin = async (params = {}, session) => {
 
   const { new_email, user_id } = params || {}
 
-  const existingUser = await userHelper.getAUser({ $or: [{ email: new_email }, { new_email }] }, session)
+  const existingUser = await userHelper.getAUser({ query: { $or: [{ email: new_email }, { new_email }] } }, session)
   if (existingUser?._id) {
     throw new Error('NEW_EMAIL_IS_ALREADY_ASSOCIATED_WITH_A_USER')
   }
 
-  const user = await userHelper.getAUser({ _id: user_id }, session)
-  if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
-  }
+  const user = await updateAUser({ query: { _id: user_id } }, { email: new_email, new_email: null }, session)
 
-  user.email = new_email
-  user.new_email = null
-  await user.save({ session })
-
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const changePasswordByUser = async (params = {}, session) => {
@@ -345,7 +312,7 @@ export const changePasswordByUser = async (params = {}, session) => {
     throw new Error('NEW_PASSWORD_IS_SAME_AS_OLD_PASSWORD')
   }
 
-  const user = await userHelper.getAUser({ _id: user_id }, session)
+  const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
   if (!user?._id) {
     throw new Error('USER_DOES_NOT_EXIST')
   }
@@ -364,14 +331,16 @@ export const changePasswordByUser = async (params = {}, session) => {
   }
 
   const password = commonService.generateHashPassword(new_password)
-  const updatingData = { old_passwords: [...slice(user.old_passwords, 1, 3), password], password }
 
-  Object.assign(user, updatingData)
-  await user.save({ session })
+  await updateAUser(
+    { query: { _id: user_id } },
+    { old_passwords: [...slice(user.old_passwords, 1, 3), password], password },
+    session
+  )
 
   await authTokenService.deleteAuthTokens({ user_id }, session)
 
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const changePasswordByAdmin = async (params = {}, session) => {
@@ -385,20 +354,22 @@ export const changePasswordByAdmin = async (params = {}, session) => {
 
   const { password, user_id } = params || {}
 
-  const user = await userHelper.getAUser({ _id: user_id }, session)
+  const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
   if (!user?._id) {
     throw new Error('USER_DOES_NOT_EXIST')
   }
 
   const hashPassword = commonService.generateHashPassword(password)
 
-  user.old_passwords = [...slice(user?.old_passwords, 1, 3), hashPassword]
-  user.password = hashPassword
-  await user.save({ session })
+  await updateAUser(
+    { query: { _id: user_id } },
+    { old_passwords: [...slice(user.old_passwords, 1, 3), hashPassword], password: hashPassword },
+    session
+  )
 
   await authTokenService.deleteAuthTokens({ user_id }, session)
 
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const forgotPassword = async (params = {}, session) => {
@@ -406,7 +377,7 @@ export const forgotPassword = async (params = {}, session) => {
 
   const { email } = params || {}
 
-  const user = await userHelper.getAUser({ email }, session)
+  const user = await userHelper.getAUser({ query: { email } }, session)
   if (!user?._id) {
     throw new Error('USER_DOES_NOT_EXIST')
   }
@@ -435,7 +406,7 @@ export const forgotPassword = async (params = {}, session) => {
     session
   )
 
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const retryForgotPassword = async (params = {}, session) => {
@@ -443,7 +414,7 @@ export const retryForgotPassword = async (params = {}, session) => {
 
   const { email } = params || {}
 
-  const user = await userHelper.getAUser({ email }, session)
+  const user = await userHelper.getAUser({ query: { email } }, session)
   if (!user?._id) {
     throw new Error('USER_DOES_NOT_EXIST')
   }
@@ -472,7 +443,7 @@ export const retryForgotPassword = async (params = {}, session) => {
     session
   )
 
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const verifyForgotPasswordCode = async (params = {}, session) => {
@@ -513,7 +484,7 @@ export const verifyForgotPassword = async (params = {}, session) => {
 
   await verificationTokenService.validateVerificationTokenForUser({ email, token, type: 'forgot_password' }, session)
 
-  const user = await userHelper.getAUser({ email }, session)
+  const user = await userHelper.getAUser({ query: { email } }, session)
   if (!user?._id) {
     throw new Error('USER_IS_NOT_FOUND')
   }
@@ -530,13 +501,15 @@ export const verifyForgotPassword = async (params = {}, session) => {
 
   const hashPassword = commonService.generateHashPassword(password)
 
-  user.old_passwords = [...slice(user?.old_passwords, 1, 3), hashPassword]
-  user.password = hashPassword
-  await user.save({ session })
+  await updateAUser(
+    { query: { _id: user?._id } },
+    { old_passwords: [...slice(user.old_passwords, 1, 3), hashPassword], password: hashPassword },
+    session
+  )
 
   await authTokenService.deleteAuthTokens({ user_id: user?._id }, session)
 
-  return omit(user?.toObject(), ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
+  return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
 
 export const verifyUserPassword = async (params = {}, session) => {
@@ -550,7 +523,7 @@ export const verifyUserPassword = async (params = {}, session) => {
 
   const { password, user_id } = params || {}
 
-  const user = await userHelper.getAUser({ _id: user_id }, session)
+  const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
   if (!user?._id) {
     throw new Error('USER_IS_NOT_FOUND')
   }

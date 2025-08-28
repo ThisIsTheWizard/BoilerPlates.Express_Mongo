@@ -82,7 +82,7 @@ export const revokeAnAuthTokenForUser = async (params = {}, session) => {
 
 export const revokeAuthTokensForUser = async (params = {}, session) => {
   const { user_id } = params || {}
-  const user = await userHelper.getAUser({ where: { _id: user_id } }, session)
+  const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
   if (!user?._id) throw new CustomError(404, 'USER_NOT_FOUND')
 
   const deletedCount = await deleteAuthTokens({ user_id }, session)

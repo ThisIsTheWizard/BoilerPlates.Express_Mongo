@@ -25,21 +25,21 @@ export const updateAnAuthTemplate = async (options, data, session) => {
   return authTemplate
 }
 
-export const deleteAnAuthTemplate = async (options, transaction) => {
-  const authTemplate = await authTemplateHelper.getAnAuthTemplate(options, transaction)
+export const deleteAnAuthTemplate = async (options, session) => {
+  const authTemplate = await authTemplateHelper.getAnAuthTemplate(options, session)
   if (!authTemplate?._id) {
     throw new CustomError(404, 'AUTH_TEMPLATE_NOT_FOUND')
   }
 
-  await authTemplate.deleteOne({ session: transaction })
+  await authTemplate.deleteOne({ session })
 
   return authTemplate
 }
 
-export const createAnAuthTemplateForMutation = async (params, user, transaction) => {
+export const createAnAuthTemplateForMutation = async (params, user, session) => {
   const { body, event, subject, title } = params || {}
 
-  const authTemplate = await createAnAuthTemplate({ body, event, subject, title }, null, transaction)
+  const authTemplate = await createAnAuthTemplate({ body, event, subject, title }, null, session)
   if (!authTemplate?._id) {
     throw new CustomError(500, 'COULD_NOT_CREATE_AUTH_TEMPLATE')
   }
@@ -47,13 +47,13 @@ export const createAnAuthTemplateForMutation = async (params, user, transaction)
   return authTemplate
 }
 
-export const updateAnAuthTemplateForMutation = async (params, user, transaction) => {
+export const updateAnAuthTemplateForMutation = async (params, user, session) => {
   const { queryData, inputData } = params || {}
   const { body, event, subject, title } = inputData || {}
 
   const authTemplate = await authTemplateHelper.getAnAuthTemplate(
     { where: { _id: queryData?.entity_id || null } },
-    transaction
+    session
   )
   if (!authTemplate?._id) throw new CustomError(404, 'AUTH_TEMPLATE_NOT_FOUND')
 
@@ -64,18 +64,18 @@ export const updateAnAuthTemplateForMutation = async (params, user, transaction)
   if (title) updateData.title = title
 
   Object.assign(authTemplate, updateData)
-  await authTemplate.save({ session: transaction })
+  await authTemplate.save({ session })
 
   return authTemplate
 }
 
-export const removeAnAuthTemplateForMutation = async (query, user, transaction) => {
+export const removeAnAuthTemplateForMutation = async (query, user, session) => {
   const authTemplate = await authTemplateHelper.getAnAuthTemplate({
     where: { _id: query?.entity_id }
   })
   if (!authTemplate?._id) throw new CustomError(404, 'AUTH_TEMPLATE_NOT_FOUND')
 
-  await authTemplate.deleteOne({ session: transaction })
+  await authTemplate.deleteOne({ session })
 
   return authTemplate
 }

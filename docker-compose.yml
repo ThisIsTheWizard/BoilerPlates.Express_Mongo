@@ -1,28 +1,63 @@
 services:
-  mongo:
+  mongo_one:
     image: mongo
-    container_name: mongo_container
+    container_name: mongo_one_container
+    command: ['mongod', '--replSet', 'rs0', '--bind_ip_all', '--keyFile', '/data/keyfile']
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     ports:
       - '27017:27017'
     volumes:
-      - mongo_data:/data/db
+      - mongo_one_data:/data/db
+      - ./mongo-keyfile:/data/keyfile:ro
+
+  mongo_two:
+    image: mongo
+    container_name: mongo_two_container
+    command: ['mongod', '--replSet', 'rs0', '--bind_ip_all', '--keyFile', '/data/keyfile']
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    ports:
+      - '27018:27017'
+    volumes:
+      - mongo_two_data:/data/db
+      - ./mongo-keyfile:/data/keyfile:ro
+
+  mongo-init-replica:
+    image: mongo
+    depends_on:
+      - mongo_one
+      - mongo_two
+    entrypoint: >
+      bash -c "
+        echo 'Waiting for MongoDB to be ready...' &&
+        until mongosh --host mongo_one:27017 -u admin -p 4567890321 --authenticationDatabase admin --eval 'db.adminCommand(\"ping\")' >/dev/null 2>&1; do sleep 2; done &&
+        until mongosh --host mongo_two:27017 -u admin -p 4567890321 --authenticationDatabase admin --eval 'db.adminCommand(\"ping\")' >/dev/null 2>&1; do sleep 2; done &&
+        echo 'Both nodes are up, initiating replica set...' &&
+        mongosh --host mongo_one:27017 -u admin -p 4567890321 --authenticationDatabase admin --eval '
+          rs.initiate({
+            _id: \"rs0\",
+            members: [
+              { _id: 0, host: \"mongo_one:27017\" },
+              { _id: 1, host: \"mongo_two:27017\" }
+            ]
+          })
+        ' || true
+      "
 
   mongo_express:
     image: mongo-express
     container_name: mongo_express_container
     environment:
-      ME_CONFIG_MONGODB_SERVER: ${MONGO_EXPRESS_SERVER}
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USER}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD}
       ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER}
       ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD}
+      ME_CONFIG_MONGODB_URL: ${MONGO_URL}
     ports:
       - '8081:8081'
     depends_on:
-      - mongo
+      - mongo-init-replica
     volumes:
       - mongo_express_data:/app/config
 
@@ -36,11 +71,12 @@ services:
     env_file:
       - .env
     depends_on:
-      - mongo
+      - mongo-init-replica
     volumes:
       - .:/app
       - /app/node_modules
 
 volumes:
-  mongo_data:
   mongo_express_data:
+  mongo_one_data:
+  mongo_two_data:
