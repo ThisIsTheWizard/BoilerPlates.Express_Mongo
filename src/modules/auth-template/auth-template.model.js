@@ -29,7 +29,6 @@ const authTemplateSchema = new mongoose.Schema(
   }
 )
 
-authTemplateSchema.index({ id: 1 }, { unique: true })
 authTemplateSchema.index({ created_at: 1 })
 authTemplateSchema.index({ created_by: 1 })
 authTemplateSchema.index({ event: 1 }, { unique: true })

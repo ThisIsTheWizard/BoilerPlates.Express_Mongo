@@ -30,7 +30,6 @@ const authTokenSchema = new mongoose.Schema(
   }
 )
 
-authTokenSchema.index({ id: 1 }, { unique: true })
 authTokenSchema.index({ access_token: 1, user_id: 1 }, { unique: true })
 authTokenSchema.index({ created_at: 1 })
 authTokenSchema.index({ refresh_token: 1 })

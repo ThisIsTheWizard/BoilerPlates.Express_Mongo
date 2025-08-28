@@ -27,7 +27,6 @@ const permissionSchema = new mongoose.Schema(
   }
 )
 
-permissionSchema.index({ id: 1 }, { unique: true })
 permissionSchema.index({ created_at: 1 })
 permissionSchema.index({ created_by: 1 })
 permissionSchema.index({ action: 1 }, { unique: true })

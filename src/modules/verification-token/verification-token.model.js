@@ -44,7 +44,6 @@ const verificationTokenSchema = new mongoose.Schema(
   }
 )
 
-verificationTokenSchema.index({ id: 1 }, { unique: true })
 verificationTokenSchema.index({ email: 1, token: 1, user_id: 1 })
 verificationTokenSchema.index({ created_at: 1 })
 verificationTokenSchema.index({ updated_at: 1 })

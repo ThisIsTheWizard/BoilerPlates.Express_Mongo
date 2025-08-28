@@ -23,7 +23,6 @@ const roleUserSchema = new mongoose.Schema(
   }
 )
 
-roleUserSchema.index({ id: 1 }, { unique: true })
 roleUserSchema.index({ created_at: 1 })
 roleUserSchema.index({ role_id: 1 })
 roleUserSchema.index({ user_id: 1 })

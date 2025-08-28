@@ -36,7 +36,6 @@ const rolePermissionSchema = new mongoose.Schema(
   }
 )
 
-rolePermissionSchema.index({ id: 1 }, { unique: true })
 rolePermissionSchema.index({ created_at: 1 })
 rolePermissionSchema.index({ created_by: 1 })
 rolePermissionSchema.index({ permission_id: 1, role_id: 1 }, { unique: true })

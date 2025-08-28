@@ -50,7 +50,6 @@ const userSchema = new mongoose.Schema(
   }
 )
 
-userSchema.index({ id: 1 }, { unique: true })
 userSchema.index({ created_at: 1 })
 userSchema.index({ email: 1 }, { unique: true })
 userSchema.index({ first_name: 1, last_name: 1 })
