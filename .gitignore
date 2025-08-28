@@ -145,3 +145,5 @@ src/.DS_Store
 src/modules/.DS_Store
 .vscode/settings.json
 launch.json
+
+mongo-keyfile

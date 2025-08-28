@@ -74,7 +74,14 @@ npm install
 
 Rename the `.env.sample` file into `.env` and customize as needed (MongoDB URI, ports, credentials, etc.)
 
-### 4. Start services
+### 4. Initialize private key for mongo
+
+```bash
+openssl rand -base64 756 > mongo-keyfile
+chmod 600 mongo-keyfile
+```
+
+### 5. Start services
 
 ```bash
 docker-compose up -d --build
@@ -123,9 +130,9 @@ docker-compose up -d --build
 
 Data is persisted via Docker volumes:
 
-- `node_server_data` → Stores Node server files for hot reload in dev mode
 - `mongo_express_data` → Stores Mongo Express configuration
-- `mongo_data` → Stores MongoDB database files
+- `mongo_one_data` → Stores MongoDB database files
+- `mongo_two_data` → Stores MongoDB database files
 
 ---
 
