@@ -25,7 +25,7 @@ services:
       - mongo_two_data:/data/db
       - ./mongo-keyfile:/data/keyfile:ro
 
-  mongo-init-replica:
+  mongo_init_replica:
     image: mongo
     depends_on:
       - mongo_one
@@ -57,7 +57,7 @@ services:
     ports:
       - '8081:8081'
     depends_on:
-      - mongo-init-replica
+      - mongo_init_replica
     volumes:
       - mongo_express_data:/app/config
 
@@ -71,7 +71,7 @@ services:
     env_file:
       - .env
     depends_on:
-      - mongo-init-replica
+      - mongo_init_replica
     volumes:
       - .:/app
       - /app/node_modules

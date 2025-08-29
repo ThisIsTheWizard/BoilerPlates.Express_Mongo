@@ -1,7 +1,8 @@
+import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 
 // Initiating Dot Env
-require('dotenv').config()
+dotenv.config()
 
 export const connectToMongoDB = async () => {
   try {

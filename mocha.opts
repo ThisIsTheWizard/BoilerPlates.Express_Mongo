@@ -1,0 +1,5 @@
+--require @babel/register
+--require test/setup.js
+--recursive
+--timeout 10000
+--exit
