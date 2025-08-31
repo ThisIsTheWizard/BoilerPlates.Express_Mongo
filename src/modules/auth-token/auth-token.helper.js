@@ -9,17 +9,24 @@ import {} from 'src/modules/services'
 // Utils
 import { CustomError } from 'src/utils/error'
 
+export const countAuthTokens = async (options) => AuthToken.countDocuments(options)
+
 export const getAnAuthToken = async (options, session) => AuthToken.findOne(options).session(session)
 
 export const getAuthTokens = async (options, session) => AuthToken.find(options).session(session)
-
-export const countAuthTokens = async (options) => AuthToken.countDocuments(options)
 
 export const prepareAuthTokenQuery = (params = {}) => {
   const query = {}
 
   if (params?.access_token) query.access_token = params.access_token
-  if (params?.entity_id) query._id = params.entity_id
+  if (size(params?.exclude_entity_ids) || size(params?.include_entity_ids)) {
+    query._id = {
+      $and: [
+        ...(size(params?.exclude_entity_ids) ? [{ $nin: params?.exclude_entity_ids }] : []),
+        ...(size(params?.include_entity_ids) ? [{ $in: params?.include_entity_ids }] : [])
+      ]
+    }
+  }
   if (params?.refresh_token) query.refresh_token = params.refresh_token
   if (params?.user_id) query.user_id = params.user_id
 
@@ -28,25 +35,27 @@ export const prepareAuthTokenQuery = (params = {}) => {
 
 export const getAnAuthTokenForQuery = async (params) => {
   const query = prepareAuthTokenQuery(params)
-  const authToken = await getAnAuthToken({ where: query })
-  if (!authToken?._id) throw new CustomError(404, 'AUTH_TOKEN_NOT_FOUND')
+  const authToken = await getAnAuthToken({ query })
+  if (!authToken?._id) {
+    throw new CustomError(404, 'AUTH_TOKEN_NOT_FOUND')
+  }
 
   return authToken
 }
 
 export const getAuthTokensForQuery = async (params) => {
-  const { options = {}, query = {} } = params || {}
+  const { options = {} } = params || {}
   const { limit, skip, sort } = options || {}
 
-  const where = prepareAuthTokenQuery(query)
+  const query = prepareAuthTokenQuery(params?.query)
   const authTokens = await getAuthTokens({
     limit,
     skip,
     sort,
-    where
+    query
   })
-  const filtered_rows = await countAuthTokens({ where })
-  const total_rows = await countAuthTokens({ where: {} })
+  const filtered_rows = await countAuthTokens(query)
+  const total_rows = await countAuthTokens({})
 
   return { data: authTokens, meta_data: { filtered_rows, total_rows } }
 }
