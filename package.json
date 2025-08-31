@@ -1,7 +1,7 @@
 {
-  "name": "Backend.API.ExpressJS",
+  "name": "BoilerPlates.Express_Mongo",
   "version": "1.0.0",
-  "description": "This is the API server of Backend.API.ExpressJS Application",
+  "description": "This is the API server of BoilerPlates.Express_Mongo Application",
   "main": "src/server.js",
   "author": "The Wizard",
   "license": "MIT",
@@ -11,7 +11,8 @@
     "format": "prettier . --write",
     "lint": "eslint --quiet . --ignore-pattern build/ --ignore-pattern test/",
     "lint-fix": "eslint --quiet . --fix",
-    "test": "docker-compose -f docker-compose.test.yml up -d && sleep 15 && NODE_ENV=test mocha --require @babel/register --recursive test/**/*.test.js --timeout 10000 && docker-compose -f docker-compose.test.yml down"
+    "pretest": " docker-compose -f docker-compose.test.yml down -v && docker-compose -f docker-compose.test.yml up --build -d && sleep 15",
+    "test": "mocha --require @babel/register --file test/setup.js --recursive test/**/*.test.js --timeout 12000"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.624.0",
