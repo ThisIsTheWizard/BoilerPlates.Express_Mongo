@@ -1,7 +1,13 @@
 import { size } from 'lodash'
 
 // Models
-import { Role } from 'src/modules/models'
+import { Role, User } from 'src/modules/models'
+
+// Helpers
+import { roleHelper } from 'src/modules/helpers'
+
+// Services
+import { userService } from 'src/modules/services'
 
 // Utils
 import { CustomError } from 'src/utils/error'
@@ -60,3 +66,37 @@ export const updateARoleForMutation = async (params, user, session) => {
 
 export const deleteARoleForMutation = async (query, user, session) =>
   deleteARole({ query: { _id: query?.collection_id } }, session)
+
+export const assignARoleToUserByName = async (params, session) => {
+  const { role_name, user_id } = params || {}
+
+  const role = await roleHelper.getARole({ query: { name: role_name } }, session)
+  if (!role?._id) {
+    throw new CustomError(404, 'ROLE_NOT_FOUND')
+  }
+
+  const user = await User.findOneAndUpdate({ _id: user_id }, { $addToSet: { roles: role._id } }, { new: true }).session(
+    session
+  )
+  if (!user?._id) {
+    throw new CustomError(500, 'COULD_NOT_ASSIGN_ROLE_TO_USER')
+  }
+
+  return user
+}
+
+export const revokeARoleFromUserByName = async (params, session) => {
+  const { role_name, user_id } = params || {}
+
+  const role = await roleHelper.getARole({ query: { name: role_name } }, session)
+  if (!role?._id) {
+    throw new CustomError(404, 'ROLE_NOT_FOUND')
+  }
+
+  const user = await userService.updateAUser({ query: { _id: user_id } }, { $pull: { roles: role._id } }, session)
+  if (!user?._id) {
+    throw new CustomError(500, 'COULD_NOT_REVOKE_ROLE_FROM_USER')
+  }
+
+  return user
+}

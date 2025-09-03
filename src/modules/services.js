@@ -4,7 +4,7 @@ export * as commonService from 'src/modules/common/common.service'
 export * as notificationService from 'src/modules/notification/notification.service'
 export * as permissionService from 'src/modules/permission/permission.service'
 export * as rolePermissionService from 'src/modules/role-permission/role-permission.service'
-export * as roleUserService from 'src/modules/role-user/role-user.service'
+
 export * as roleService from 'src/modules/role/role.service'
 export * as userService from 'src/modules/user/user.service'
 export * as verificationTokenService from 'src/modules/verification-token/verification-token.service'

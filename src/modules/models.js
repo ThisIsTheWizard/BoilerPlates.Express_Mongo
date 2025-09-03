@@ -2,7 +2,7 @@ export { AuthTemplate } from 'src/modules/auth-template/auth-template.model'
 export { AuthToken } from 'src/modules/auth-token/auth-token.model'
 export { Permission } from 'src/modules/permission/permission.model'
 export { RolePermission } from 'src/modules/role-permission/role-permission.model'
-export { RoleUser } from 'src/modules/role-user/role-user.model'
+
 export { Role } from 'src/modules/role/role.model'
 export { User } from 'src/modules/user/user.model'
 export { VerificationToken } from 'src/modules/verification-token/verification-token.model'

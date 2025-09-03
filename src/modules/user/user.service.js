@@ -8,7 +8,7 @@ import { User } from 'src/modules/models'
 import { commonHelper, userHelper, verificationTokenHelper } from 'src/modules/helpers'
 
 // Services
-import { authTokenService, commonService, roleUserService, verificationTokenService } from 'src/modules/services'
+import { authTokenService, commonService, roleService, verificationTokenService } from 'src/modules/services'
 
 // Utils
 import { CustomError } from 'src/utils/error'
@@ -69,7 +69,7 @@ export const registerUser = async (params = {}, session) => {
     throw new Error('COULD_NOT_CREATE_USER')
   }
 
-  await roleUserService.assignARoleToUserByName({ role_name: 'user', user_id: user?._id }, session)
+  await roleService.assignARoleToUserByName({ role_name: 'user', user_id: user?._id }, session)
 
   await verificationTokenService.createAVerificationTokenForUser(
     { ...pick(user, ['email', 'first_name', 'last_name']), type: 'user_verification', user_id: user?._id },

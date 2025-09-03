@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
       default: null,
       type: String
     },
-    roles: [{ ref: 'Role', type: String }],
+    roles: [{ ref: 'roles', type: String }],
     status: {
       default: 'unverified',
       enum: ['active', 'inactive', 'invited', 'unverified'],
@@ -55,4 +55,4 @@ userSchema.index({ first_name: 1, last_name: 1 })
 userSchema.index({ status: 1 })
 userSchema.index({ updated_at: 1 })
 
-export const User = mongoose.model('User', userSchema)
+export const User = mongoose.model('users', userSchema)
