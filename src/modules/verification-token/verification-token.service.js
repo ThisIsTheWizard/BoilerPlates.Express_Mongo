@@ -13,38 +13,38 @@ import { notificationService } from 'src/modules/services'
 // Utils
 import { CustomError } from 'src/utils/error'
 
-export const createAVerificationToken = async (data, options, transaction) =>
-  VerificationTokenEntity.create(data, { ...options, transaction })
+export const createAVerificationToken = async (data, options, session) =>
+  VerificationTokenEntity.create(data, { ...options, session })
 
-export const updateAVerificationToken = async (options, data, transaction) => {
-  const verificationToken = await verificationTokenHelper.getAVerificationToken(options, transaction)
+export const updateAVerificationToken = async (options, data, session) => {
+  const verificationToken = await verificationTokenHelper.getAVerificationToken(options, session)
   if (!verificationToken?.id) {
     throw new CustomError(404, 'VERIFICATION_TOKEN_NOT_FOUND')
   }
 
-  await verificationToken.update(data, { transaction })
+  await verificationToken.update(data, { session })
 
   return verificationToken
 }
 
-export const updateVerificationTokens = async (options, data, transaction) =>
-  VerificationTokenEntity.update(data, { ...options, transaction })
+export const updateVerificationTokens = async (options, data, session) =>
+  VerificationTokenEntity.update(data, { ...options, session })
 
-export const deleteAVerificationToken = async (options, transaction) => {
-  const verificationToken = await verificationTokenHelper.getAVerificationToken(options, transaction)
+export const deleteAVerificationToken = async (options, session) => {
+  const verificationToken = await verificationTokenHelper.getAVerificationToken(options, session)
   if (!verificationToken?.id) {
     throw new CustomError(404, 'VERIFICATION_TOKEN_NOT_FOUND')
   }
 
-  await verificationToken.destroy({ transaction })
+  await verificationToken.destroy({ session })
 
   return verificationToken
 }
 
-export const deleteVerificationTokens = async (options, transaction) =>
-  VerificationTokenEntity.destroy({ ...options, transaction })
+export const deleteVerificationTokens = async (options, session) =>
+  VerificationTokenEntity.destroy({ ...options, session })
 
-export const createAVerificationTokenForUser = async (params, transaction) => {
+export const createAVerificationTokenForUser = async (params, session) => {
   commonHelper.validateProps(
     [
       { field: 'email', required: true, type: 'string' },
@@ -64,7 +64,7 @@ export const createAVerificationTokenForUser = async (params, transaction) => {
   const verificationToken = await createAVerificationToken(
     { email, token: commonHelper.getRandomNumber(6), type, user_id },
     null,
-    transaction
+    session
   )
   if (!verificationToken?.id) {
     throw new Error('COULD_NOT_CREATE_VERIFICATION_TOKEN')
@@ -84,7 +84,7 @@ export const createAVerificationTokenForUser = async (params, transaction) => {
   return verificationToken
 }
 
-export const validateVerificationTokenForUser = async (params = {}, transaction) => {
+export const validateVerificationTokenForUser = async (params = {}, session) => {
   commonHelper.validateRequiredProps(['token', 'type'], params)
 
   const { email, token, type, user_id } = params || {}
@@ -100,7 +100,7 @@ export const validateVerificationTokenForUser = async (params = {}, transaction)
   if (email) where.email = email
   if (user_id) where.user_id = user_id
 
-  const verificationToken = await verificationTokenHelper.getAVerificationToken({ where }, transaction)
+  const verificationToken = await verificationTokenHelper.getAVerificationToken({ where }, session)
   if (!verificationToken?.id) {
     throw new Error('OTP_IS_NOT_VALID')
   }
@@ -108,7 +108,7 @@ export const validateVerificationTokenForUser = async (params = {}, transaction)
     throw new Error('OTP_IS_EXPIRED')
   }
 
-  await deleteVerificationTokens({ where: omit(where, ['token']) }, transaction)
+  await deleteVerificationTokens({ where: omit(where, ['token']) }, session)
 
   return verificationToken
 }
