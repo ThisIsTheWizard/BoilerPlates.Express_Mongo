@@ -45,7 +45,7 @@ permissionRouter.post('/', authorizer(), permissionController.createAPermission)
 
 /**
  * @swagger
- * /permissions/{entity_id}:
+ * /permissions/{collection_id}:
  *   put:
  *     tags:
  *       - Permissions
@@ -54,7 +54,7 @@ permissionRouter.post('/', authorizer(), permissionController.createAPermission)
  *       - tokenAuth: []
  *     parameters:
  *       - in: path
- *         name: entity_id
+ *         name: collection_id
  *         required: true
  *         schema:
  *           type: string
@@ -80,11 +80,11 @@ permissionRouter.post('/', authorizer(), permissionController.createAPermission)
  *             schema:
  *               $ref: '#/components/schemas/Permission'
  */
-permissionRouter.put('/:entity_id', authorizer(), permissionController.updateAPermission)
+permissionRouter.put('/:collection_id', authorizer(), permissionController.updateAPermission)
 
 /**
  * @swagger
- * /permissions/{entity_id}:
+ * /permissions/{collection_id}:
  *   delete:
  *     tags:
  *       - Permissions
@@ -93,7 +93,7 @@ permissionRouter.put('/:entity_id', authorizer(), permissionController.updateAPe
  *       - tokenAuth: []
  *     parameters:
  *       - in: path
- *         name: entity_id
+ *         name: collection_id
  *         required: true
  *         schema:
  *           type: string
@@ -106,7 +106,7 @@ permissionRouter.put('/:entity_id', authorizer(), permissionController.updateAPe
  *             schema:
  *               $ref: '#/components/schemas/Permission'
  */
-permissionRouter.delete('/:entity_id', authorizer(), permissionController.deleteAPermission)
+permissionRouter.delete('/:collection_id', authorizer(), permissionController.deleteAPermission)
 
 /**
  * @swagger
@@ -147,14 +147,14 @@ permissionRouter.delete('/:entity_id', authorizer(), permissionController.delete
  *           type: string
  *           enum: [permission, role, role_permission, role_user, user]
  *       - in: query
- *         name: exclude_entity_ids
+ *         name: exclude_collection_ids
  *         schema:
  *           type: array
  *           items:
  *             type: string
  *             format: uuid
  *       - in: query
- *         name: include_entity_ids
+ *         name: include_collection_ids
  *         schema:
  *           type: array
  *           items:
@@ -174,7 +174,7 @@ permissionRouter.get('/', authorizer(), permissionController.getPermissions)
 
 /**
  * @swagger
- * /permissions/{entity_id}:
+ * /permissions/{collection_id}:
  *   get:
  *     tags:
  *       - Permissions
@@ -183,7 +183,7 @@ permissionRouter.get('/', authorizer(), permissionController.getPermissions)
  *       - tokenAuth: []
  *     parameters:
  *       - in: path
- *         name: entity_id
+ *         name: collection_id
  *         required: true
  *         schema:
  *           type: string
@@ -196,4 +196,4 @@ permissionRouter.get('/', authorizer(), permissionController.getPermissions)
  *             schema:
  *               $ref: '#/components/schemas/Permission'
  */
-permissionRouter.get('/:entity_id', authorizer(), permissionController.getAPermission)
+permissionRouter.get('/:collection_id', authorizer(), permissionController.getAPermission)

@@ -27,7 +27,10 @@ permissionController.createAPermission = async (req, res, next) => {
 permissionController.updateAPermission = async (req, res, next) => {
   try {
     const data = await useSession(async (session) =>
-      permissionService.updateAPermissionForMutation({ entity_id: req.params.entity_id, data: req.body }, session)
+      permissionService.updateAPermissionForMutation(
+        { collection_id: req.params.collection_id, data: req.body },
+        session
+      )
     )
 
     res.status(200).json({ data, message: 'SUCCESS' })
@@ -53,7 +56,7 @@ permissionController.getPermissions = async (req, res, next) => {
     const query = parse(req.query)
     const options = commonHelper.getOptionsFromQuery(query)
     const data = await permissionHelper.getPermissionsForQuery(
-      pick(query, ['action', 'exclude_entity_ids', 'include_entity_ids', 'module']),
+      pick(query, ['action', 'exclude_collection_ids', 'include_collection_ids', 'module']),
       options,
       req.user
     )

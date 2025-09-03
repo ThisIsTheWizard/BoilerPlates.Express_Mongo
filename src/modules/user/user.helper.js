@@ -38,9 +38,9 @@ export const prepareUsersQuery = (params) => {
 }
 
 export const getAUserForQuery = async (query) => {
-  commonHelper.checkRequiredFields(['entity_id'], query)
+  commonHelper.checkRequiredFields(['collection_id'], query)
 
-  return getAUser({ query: { _id: query.entity_id }, select: 'id email first_name last_name status' })
+  return getAUser({ query: { _id: query.collection_id }, select: 'id email first_name last_name status' })
 }
 
 export const getUsersForQuery = async (params, options) => {

@@ -1,7 +1,7 @@
 import { size } from 'lodash'
 
 // Models
-import { Role, User } from 'src/modules/models'
+import { Role } from 'src/modules/models'
 
 // Helpers
 import { roleHelper } from 'src/modules/helpers'
@@ -18,9 +18,9 @@ export const createARole = async (data, session) => {
 }
 
 export const updateARole = async (options, data, session) => {
-  const { query, skip, sort } = options || {}
+  const { query, sort } = options || {}
 
-  const role = await Role.findOneAndUpdate(query, data, { new: true, skip, sort }).session(session)
+  const role = await Role.findOneAndUpdate(query, data, { new: true, sort }).session(session)
   if (!role?._id) {
     throw new CustomError(404, 'ROLE_NOT_FOUND')
   }
@@ -51,8 +51,8 @@ export const createARoleForMutation = async (params, user, session) => {
 }
 
 export const updateARoleForMutation = async (params, user, session) => {
-  const { queryData, inputData } = params || {}
-  const { name } = inputData || {}
+  const { collection_id, data } = params || {}
+  const { name } = data || {}
 
   const updatingData = {}
   if (name) updatingData.name = name
@@ -61,7 +61,7 @@ export const updateARoleForMutation = async (params, user, session) => {
     throw new CustomError(400, 'NO_DATA_TO_UPDATE')
   }
 
-  return updateARole({ query: { _id: queryData?.collection_id } }, updatingData, session)
+  return updateARole({ query: { _id: collection_id } }, updatingData, session)
 }
 
 export const deleteARoleForMutation = async (query, user, session) =>
@@ -75,9 +75,7 @@ export const assignARoleToUserByName = async (params, session) => {
     throw new CustomError(404, 'ROLE_NOT_FOUND')
   }
 
-  const user = await User.findOneAndUpdate({ _id: user_id }, { $addToSet: { roles: role._id } }, { new: true }).session(
-    session
-  )
+  const user = await userService.updateAUser({ query: { _id: user_id } }, { $addToSet: { roles: role._id } }, session)
   if (!user?._id) {
     throw new CustomError(500, 'COULD_NOT_ASSIGN_ROLE_TO_USER')
   }
@@ -99,4 +97,40 @@ export const revokeARoleFromUserByName = async (params, session) => {
   }
 
   return user
+}
+
+export const updateRolePermissions = async (params, user, session) => {
+  const { collection_id, data } = params || {}
+  const { can_do_the_action, permission_id } = data || {}
+
+  const role = await roleHelper.getARole({ query: { _id: collection_id } }, session)
+  if (!role?._id) {
+    throw new CustomError(404, 'ROLE_NOT_FOUND')
+  }
+
+  const roleWithExistingPermission = await roleHelper.getARole(
+    { query: { _id: collection_id, 'permissions.permission_id': permission_id } },
+    session
+  )
+
+  const updatingData = {}
+  if (roleWithExistingPermission?._id) {
+    updatingData['permissions.$.can_do_the_action'] = can_do_the_action
+    updatingData['permissions.$.updated_by'] = user?.user_id
+  } else {
+    updatingData['$push'] = {
+      permissions: {
+        can_do_the_action,
+        created_by: user?.user_id,
+        permission_id,
+        updated_by: user?.user_id
+      }
+    }
+  }
+
+  return updateARole(
+    { query: { _id: collection_id, 'permissions.permission_id': permission_id } },
+    updatingData,
+    session
+  )
 }

@@ -25,9 +25,20 @@ roleController.createARole = async (req, res, next) => {
 roleController.updateARole = async (req, res, next) => {
   try {
     const data = await useSession(async (session) =>
-      roleService.updateARoleForMutation({ entity_id: req.params.entity_id, data: req.body }, session)
+      roleService.updateARoleForMutation({ collection_id: req.params.collection_id, data: req.body }, session)
     )
 
+    res.status(200).json({ data, message: 'SUCCESS' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+roleController.updateRolePermissions = async (req, res, next) => {
+  try {
+    const data = await useSession(async (session) =>
+      roleService.updateRolePermissions({ collection_id: req.params.collection_id, data: req.body }, req.user, session)
+    )
     res.status(200).json({ data, message: 'SUCCESS' })
   } catch (error) {
     next(error)
@@ -49,7 +60,7 @@ roleController.getRoles = async (req, res, next) => {
     const query = parse(req.query)
     const options = commonHelper.getOptionsFromQuery(query)
     const data = await roleHelper.getRolesForQuery(
-      pick(query, ['exclude_entity_ids', 'include_entity_ids', 'name']),
+      pick(query, ['exclude_collection_ids', 'include_collection_ids', 'name']),
       options,
       req.user
     )

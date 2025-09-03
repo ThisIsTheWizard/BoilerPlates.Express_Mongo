@@ -16,9 +16,9 @@ export const createAnAuthToken = async (data, session) => {
 }
 
 export const updateAnAuthToken = async (options, data, session) => {
-  const { query, skip, sort } = options || {}
+  const { query, sort } = options || {}
 
-  const authToken = await AuthToken.findOneAndUpdate(query, data, { new: true, skip, sort }).session(session)
+  const authToken = await AuthToken.findOneAndUpdate(query, data, { new: true, sort }).session(session)
   if (!authToken?._id) {
     throw new CustomError(404, 'AUTH_TOKEN_NOT_FOUND')
   }

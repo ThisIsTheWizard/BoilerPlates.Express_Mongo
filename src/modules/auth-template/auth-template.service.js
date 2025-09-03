@@ -12,9 +12,9 @@ export const createAnAuthTemplate = async (data, session) => {
 }
 
 export const updateAnAuthTemplate = async (options, data, session) => {
-  const { query, skip, sort } = options || {}
+  const { query, sort } = options || {}
 
-  const authTemplate = await AuthTemplate.findOneAndUpdate(query, data, { new: true, skip, sort }).session(session)
+  const authTemplate = await AuthTemplate.findOneAndUpdate(query, data, { new: true, sort }).session(session)
   if (!authTemplate?._id) {
     throw new CustomError(404, 'AUTH_TEMPLATE_NOT_FOUND')
   }
@@ -45,8 +45,8 @@ export const createAnAuthTemplateForMutation = async (params, user, session) => 
 }
 
 export const updateAnAuthTemplateForMutation = async (params, user, session) => {
-  const { queryData, inputData } = params || {}
-  const { body, event, subject, title } = inputData || {}
+  const { collection_id, data } = params || {}
+  const { body, event, subject, title } = data || {}
 
   const updatingData = {}
   if (body) updatingData.body = body
@@ -58,7 +58,7 @@ export const updateAnAuthTemplateForMutation = async (params, user, session) => 
     throw new CustomError(400, 'NO_DATA_TO_UPDATE')
   }
 
-  return updateAnAuthTemplate({ query: { _id: queryData?.collection_id } }, updatingData, session)
+  return updateAnAuthTemplate({ query: { _id: collection_id } }, updatingData, session)
 }
 
 export const deleteAnAuthTemplateForMutation = async (query, user, session) =>

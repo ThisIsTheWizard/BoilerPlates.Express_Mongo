@@ -2,7 +2,6 @@ export * as authTemplateHelper from 'src/modules/auth-template/auth-template.hel
 export * as authTokenHelper from 'src/modules/auth-token/auth-token.helper'
 export * as commonHelper from 'src/modules/common/common.helper'
 export * as permissionHelper from 'src/modules/permission/permission.helper'
-export * as rolePermissionHelper from 'src/modules/role-permission/role-permission.helper'
 
 export * as roleHelper from 'src/modules/role/role.helper'
 export * as userHelper from 'src/modules/user/user.helper'

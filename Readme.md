@@ -38,7 +38,7 @@ BoilerPlates.Express_Mongo/
    │   ├───services.js
    │   ├───**/
    │   │   ├───**.controller.js
-   │   │   ├───**.entity.js
+   │   │   ├───**.model.js
    │   │   ├───**.helper.js
    │   │   ├───**.router.js
    │   │   └───**.service.js

@@ -14,6 +14,19 @@ describe('Role Mutation Tests', () => {
     })
   })
 
+  describe('PUT /roles/:id/permissions', () => {
+    it('should return 401 for missing token', async () => {
+      try {
+        await api.put('/roles/1/permissions', {
+          can_do_the_action: true,
+          permission_id: 1
+        })
+      } catch (error) {
+        expect(error.response.status).to.equal(401)
+      }
+    })
+  })
+
   describe('PUT /roles/:id', () => {
     it('should return 401 for missing token', async () => {
       try {

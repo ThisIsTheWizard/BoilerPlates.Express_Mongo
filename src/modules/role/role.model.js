@@ -16,11 +16,28 @@ const roleSchema = new mongoose.Schema(
       required: true,
       type: String
     },
-    permissions: [{ ref: 'permissions', type: String }]
+    permissions: [
+      {
+        can_do_the_action: {
+          default: false,
+          type: Boolean
+        },
+        created_by: {
+          default: null,
+          type: String
+        },
+        permission: {
+          ref: 'permissions',
+          type: String
+        },
+        updated_by: {
+          default: null,
+          type: String
+        }
+      }
+    ]
   },
-  {
-    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
-  }
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 )
 
 roleSchema.index({ created_at: 1 })

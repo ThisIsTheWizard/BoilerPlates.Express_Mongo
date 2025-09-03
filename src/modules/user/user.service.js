@@ -19,9 +19,9 @@ export const createAUser = async (data, session) => {
 }
 
 export const updateAUser = async (options, data, session) => {
-  const { query, skip, sort } = options || {}
+  const { query, sort } = options || {}
 
-  const user = await User.findOneAndUpdate(query, data, { new: true, skip, sort }).session(session)
+  const user = await User.findOneAndUpdate(query, data, { new: true, sort }).session(session)
   if (!user?._id) {
     throw new CustomError(404, 'USER_NOT_FOUND')
   }

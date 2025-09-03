@@ -12,9 +12,9 @@ export const createAPermission = async (data, session) => {
 }
 
 export const updateAPermission = async (options, data, session) => {
-  const { query, skip, sort } = options || {}
+  const { query, sort } = options || {}
 
-  const permission = await Permission.findOneAndUpdate(query, data, { new: true, skip, sort }).session(session)
+  const permission = await Permission.findOneAndUpdate(query, data, { new: true, sort }).session(session)
   if (!permission?._id) {
     throw new CustomError(404, 'PERMISSION_NOT_FOUND')
   }
@@ -45,8 +45,8 @@ export const createAPermissionForMutation = async (params, user, session) => {
 }
 
 export const updateAPermissionForMutation = async (params, user, session) => {
-  const { queryData, inputData } = params || {}
-  const { action, module } = inputData || {}
+  const { collection_id, data } = params || {}
+  const { action, module } = data || {}
 
   const updatingData = {}
   if (action) updatingData.action = action
@@ -56,7 +56,7 @@ export const updateAPermissionForMutation = async (params, user, session) => {
     throw new CustomError(400, 'NO_DATA_TO_UPDATE')
   }
 
-  return updateAPermission({ query: { _id: queryData?.collection_id } }, updatingData, session)
+  return updateAPermission({ query: { _id: collection_id } }, updatingData, session)
 }
 
 export const deleteAPermissionForMutation = async (query, user, session) =>

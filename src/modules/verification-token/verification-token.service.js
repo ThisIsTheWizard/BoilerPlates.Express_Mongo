@@ -19,11 +19,9 @@ export const createAVerificationToken = async (data, session) => {
 }
 
 export const updateAVerificationToken = async (options, data, session) => {
-  const { query, skip, sort } = options || {}
+  const { query, sort } = options || {}
 
-  const verificationToken = await VerificationToken.findOneAndUpdate(query, data, { new: true, skip, sort }).session(
-    session
-  )
+  const verificationToken = await VerificationToken.findOneAndUpdate(query, data, { new: true, sort }).session(session)
   if (!verificationToken?._id) {
     throw new CustomError(404, 'VERIFICATION_TOKEN_NOT_FOUND')
   }
