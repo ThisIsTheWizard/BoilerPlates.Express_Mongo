@@ -1,97 +1,83 @@
-import { head } from 'lodash'
+import { size } from 'lodash'
 
 // Models
 import { RolePermission } from 'src/modules/models'
 
 // Helpers
-import { commonHelper, permissionHelper, roleHelper, rolePermissionHelper } from 'src/modules/helpers'
+import { permissionHelper, roleHelper, rolePermissionHelper } from 'src/modules/helpers'
 
 // Utils
 import { CustomError } from 'src/utils/error'
 
-export const createARolePermission = async (data, options, session) => {
-  const rolePermissions = await RolePermission.create([data], { session })
-
-  return head(rolePermissions)
+export const createARolePermission = async (data, session) => {
+  const [rolePermission] = await RolePermission.create([data], { session })
+  return rolePermission
 }
 
-export const createRolePermissions = async (data, options, session) => RolePermission.insertMany(data, { session })
-
 export const updateARolePermission = async (options, data, session) => {
-  const rolePermission = await rolePermissionHelper.getARolePermission(options, session)
+  const { query, skip, sort } = options || {}
+
+  const rolePermission = await RolePermission.findOneAndUpdate(query, data, { new: true, skip, sort }).session(session)
   if (!rolePermission?._id) {
     throw new CustomError(404, 'ROLE_PERMISSION_NOT_FOUND')
   }
-
-  Object.assign(rolePermission, data)
-  await rolePermission.save({ session })
 
   return rolePermission
 }
 
 export const deleteARolePermission = async (options, session) => {
-  const rolePermission = await rolePermissionHelper.getARolePermission(options, session)
+  const { query, skip, sort } = options || {}
+
+  const rolePermission = await RolePermission.findOneAndDelete(query, { skip, sort }).session(session)
   if (!rolePermission?._id) {
     throw new CustomError(404, 'ROLE_PERMISSION_NOT_FOUND')
   }
-
-  await rolePermission.deleteOne({ session })
 
   return rolePermission
 }
 
 export const createARolePermissionForMutation = async (params, user, session) => {
-  commonHelper.validateProps(
-    [
-      { field: 'can_do_the_action', required: true, type: 'boolean' },
-      { field: 'permission_id', required: true, type: 'string' },
-      { field: 'role_id', required: true, type: 'string' }
-    ],
-    params
-  )
-
   const { can_do_the_action, permission_id, role_id } = params || {}
 
-  const role = await roleHelper.getARole({ where: { _id: role_id } }, session)
+  const role = await roleHelper.getARole({ query: { _id: role_id } }, session)
   if (!role?._id) {
     throw new CustomError(404, 'ROLE_NOT_FOUND')
   }
 
-  const permission = await permissionHelper.getAPermission({ where: { _id: permission_id } }, session)
+  const permission = await permissionHelper.getAPermission({ query: { _id: permission_id } }, session)
   if (!permission?._id) {
     throw new CustomError(404, 'PERMISSION_NOT_FOUND')
   }
 
-  const existingRolePerm = await rolePermissionHelper.getARolePermission({ permission_id, role_id }, session)
+  const existingRolePerm = await rolePermissionHelper.getARolePermission({ query: { permission_id, role_id } }, session)
   if (existingRolePerm?._id) {
     throw new CustomError(400, 'ROLE_PERMISSION_ALREADY_EXISTS')
   }
 
   const rolePermission = await createARolePermission(
     { can_do_the_action, permission_id, role_id, created_by: user._id },
-    null,
     session
   )
+  if (!rolePermission?._id) {
+    throw new CustomError(500, 'COULD_NOT_CREATE_ROLE_PERMISSION')
+  }
 
   return rolePermission
 }
 
 export const updateARolePermissionForMutation = async (params, user, session) => {
-  commonHelper.validateProps(
-    [
-      { field: 'entity_id', required: true, type: 'string' },
-      { field: 'can_do_the_action', required: true, type: 'boolean' }
-    ],
-    params
-  )
+  const { queryData, inputData } = params || {}
+  const { can_do_the_action } = inputData || {}
 
-  const { entity_id, can_do_the_action } = params || {}
+  const updatingData = {}
+  if (can_do_the_action) updatingData.can_do_the_action = can_do_the_action
 
-  return updateARolePermission({ where: { _id: entity_id } }, { can_do_the_action, updated_by: user?._id }, session)
+  if (!size(updatingData)) {
+    throw new CustomError(400, 'NO_DATA_TO_UPDATE')
+  }
+
+  return updateARolePermission({ query: { _id: queryData?.collection_id } }, updatingData, session)
 }
 
-export const deleteARolePermissionForMutation = async (params, session) => {
-  commonHelper.validateProps([{ field: 'entity_id', required: true, type: 'string' }], params)
-
-  return deleteARolePermission({ where: { _id: params?.entity_id } }, session)
-}
+export const deleteARolePermissionForMutation = async (query, user, session) =>
+  deleteARolePermission({ query: { _id: query?.collection_id } }, session)

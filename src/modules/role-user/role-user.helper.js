@@ -3,26 +3,31 @@ import { size } from 'lodash'
 // Models
 import { RoleUser } from 'src/modules/models'
 
-// Helpers
-import { commonHelper } from 'src/modules/helpers'
-
 // Utils
 import { CustomError } from 'src/utils/error'
 
-export const countRoleUsers = async (options, session) => RoleUser.countDocuments(options).session(session)
+export const countRoleUsers = async (query) => RoleUser.countDocuments(query)
 
-export const getARoleUser = async (options, session) => RoleUser.findOne(options).session(session)
+export const getARoleUser = async (options, session) => {
+  const { populate, query, select, skip, sort } = options || {}
 
-export const getRoleUsers = async (options, session) => RoleUser.find(options).session(session)
+  return RoleUser.findOne(query, select, { populate, skip, sort }).session(session)
+}
+
+export const getRoleUsers = async (options, session) => {
+  const { limit, populate, query, select, skip, sort } = options || {}
+
+  return RoleUser.find(query, select, { limit, populate, skip, sort }).session(session)
+}
 
 export const prepareRoleUserQuery = (params) => {
   const query = {}
 
-  if (size(params?.exclude_entity_ids) || size(params?.include_entity_ids)) {
+  if (size(params?.exclude_collection_ids) || size(params?.include_collection_ids)) {
     query._id = {
       $and: [
-        ...(size(params?.exclude_entity_ids) ? [{ $nin: params?.exclude_entity_ids }] : []),
-        ...(size(params?.include_entity_ids) ? [{ $in: params?.include_entity_ids }] : [])
+        ...(size(params?.exclude_collection_ids) ? [{ $nin: params?.exclude_collection_ids }] : []),
+        ...(size(params?.include_collection_ids) ? [{ $in: params?.include_collection_ids }] : [])
       ]
     }
   }
@@ -37,9 +42,7 @@ export const prepareRoleUserQuery = (params) => {
 }
 
 export const getARoleUserForQuery = async (params) => {
-  commonHelper.validateProps([{ field: 'entity_id', required: true, type: 'string' }], params)
-
-  const roleUser = await getARoleUser({ _id: params?.entity_id }).populate('role').populate('user')
+  const roleUser = await getARoleUser({ populate: ['role', 'user'], query: { _id: params?.collection_id } })
   if (!roleUser?._id) {
     throw new CustomError(404, 'ROLE_USER_NOT_FOUND')
   }
@@ -47,12 +50,18 @@ export const getARoleUserForQuery = async (params) => {
   return roleUser
 }
 
-export const getRoleUsersForQuery = async (params, options) => {
-  const { limit, skip, sort } = options || {}
+export const getRoleUsersForQuery = async (params) => {
+  const { limit, skip, sort } = params?.options || {}
 
-  const where = prepareRoleUserQuery(params)
-  const data = await getRoleUsers({ where, limit, skip, sort }).populate('role').populate('user')
-  const filtered_rows = await countRoleUsers({ where })
+  const query = prepareRoleUserQuery(params?.query || {})
+  const data = await getRoleUsers({
+    limit,
+    populate: ['role', 'user'],
+    query,
+    skip,
+    sort
+  })
+  const filtered_rows = await countRoleUsers(query)
   const total_rows = await countRoleUsers({})
 
   return { data, meta_data: { filtered_rows, total_rows } }

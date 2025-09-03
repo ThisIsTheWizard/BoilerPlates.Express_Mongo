@@ -4,45 +4,45 @@ import { v4 as uuidv4 } from 'uuid'
 const userSchema = new mongoose.Schema(
   {
     _id: {
-      type: String,
-      default: uuidv4
+      default: uuidv4,
+      type: String
     },
     email: {
-      type: String,
-      required: true
+      required: true,
+      type: String
     },
     first_name: {
-      type: String,
-      default: null
+      default: null,
+      type: String
     },
     last_name: {
-      type: String,
-      default: null
+      default: null,
+      type: String
     },
     new_email: {
-      type: String,
-      default: null
-    },
-    phone_number: {
-      type: String,
-      default: null
+      default: null,
+      type: String
     },
     old_passwords: {
-      type: [String],
+      default: [],
       required: true,
-      default: []
+      type: [String]
     },
     password: {
-      type: String,
-      default: null
+      default: null,
+      type: String
     },
+    phone_number: {
+      default: null,
+      type: String
+    },
+    roles: [{ ref: 'Role', type: String }],
     status: {
-      type: String,
-      required: true,
+      default: 'unverified',
       enum: ['active', 'inactive', 'invited', 'unverified'],
-      default: 'unverified'
-    },
-    roles: [{ type: String, ref: 'Role' }]
+      required: true,
+      type: String
+    }
   },
   {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }

@@ -1,3 +1,5 @@
+import { size } from 'lodash'
+
 // Models
 import { AuthTemplate } from 'src/modules/models'
 

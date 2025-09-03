@@ -4,31 +4,31 @@ import { v4 as uuidv4 } from 'uuid'
 const rolePermissionSchema = new mongoose.Schema(
   {
     _id: {
-      type: String,
-      default: uuidv4
-    },
-    role_id: {
-      type: String,
-      ref: 'Role',
-      required: true
-    },
-    permission_id: {
-      type: String,
-      ref: 'Permission',
-      required: true
+      default: uuidv4,
+      type: String
     },
     can_do_the_action: {
-      type: Boolean,
+      default: false,
       required: true,
-      default: false
+      type: Boolean
     },
     created_by: {
-      type: String,
-      default: null
+      default: null,
+      type: String
+    },
+    permission_id: {
+      ref: 'permissions',
+      required: true,
+      type: String
+    },
+    role_id: {
+      ref: 'roles',
+      required: true,
+      type: String
     },
     updated_by: {
-      type: String,
-      default: null
+      default: null,
+      type: String
     }
   },
   {
@@ -42,4 +42,4 @@ rolePermissionSchema.index({ permission_id: 1, role_id: 1 }, { unique: true })
 rolePermissionSchema.index({ updated_at: 1 })
 rolePermissionSchema.index({ updated_by: 1 })
 
-export const RolePermission = mongoose.model('RolePermission', rolePermissionSchema)
+export const RolePermission = mongoose.model('role_permissions', rolePermissionSchema)

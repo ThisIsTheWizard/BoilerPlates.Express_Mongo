@@ -5,38 +5,38 @@ import { v4 as uuidv4 } from 'uuid'
 const verificationTokenSchema = new mongoose.Schema(
   {
     _id: {
-      type: String,
-      default: uuidv4
+      default: uuidv4,
+      type: String
     },
     email: {
-      type: String,
-      required: true
+      required: true,
+      type: String
     },
     expired_at: {
-      type: Date,
+      default: () => moment().add(5, 'minutes').toDate(),
       required: true,
-      default: () => moment().add(5, 'minutes').toDate()
+      type: Date
     },
     status: {
-      type: String,
-      required: true,
+      default: 'unverified',
       enum: ['cancelled', 'verified', 'unverified'],
-      default: 'unverified'
+      required: true,
+      type: String
     },
     token: {
-      type: String,
-      required: true
+      required: true,
+      type: String
     },
     type: {
-      type: String,
-      required: true,
+      default: 'user_verification',
       enum: ['forgot_password', 'user_verification'],
-      default: 'user_verification'
+      required: true,
+      type: String
     },
     user_id: {
-      type: String,
       ref: 'User',
-      required: true
+      required: true,
+      type: String
     }
   },
   {

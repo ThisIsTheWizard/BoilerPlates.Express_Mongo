@@ -1,69 +1,63 @@
-import { head } from 'lodash'
+import { size } from 'lodash'
 
 // Models
 import { Permission } from 'src/modules/models'
 
-// Helpers
-import { permissionHelper } from 'src/modules/helpers'
-
-// Services
-import {} from 'src/modules/services'
-
 // Utils
 import { CustomError } from 'src/utils/error'
 
-export const createAPermission = async (data, options, session) => {
-  const permissions = await Permission.create([data], { session })
-
-  return head(permissions)
+export const createAPermission = async (data, session) => {
+  const [permission] = await Permission.create([data], { session })
+  return permission
 }
 
-export const createPermissions = async (data, options, session) => Permission.insertMany(data, { session })
-
 export const updateAPermission = async (options, data, session) => {
-  const permission = await Permission.findOne(options.where).session(session)
-  if (!permission?._id) throw new CustomError(404, 'PERMISSION_NOT_FOUND')
+  const { query, skip, sort } = options || {}
 
-  permission.set(data)
-  await permission.save({ session })
+  const permission = await Permission.findOneAndUpdate(query, data, { new: true, skip, sort }).session(session)
+  if (!permission?._id) {
+    throw new CustomError(404, 'PERMISSION_NOT_FOUND')
+  }
 
   return permission
 }
 
 export const deleteAPermission = async (options, session) => {
-  const permission = await Permission.findOne(options.where).session(session)
-  if (!permission?._id) throw new CustomError(404, 'PERMISSION_NOT_FOUND')
+  const { query, skip, sort } = options || {}
 
-  await permission.deleteOne({ session })
+  const permission = await Permission.findOneAndDelete(query, { skip, sort }).session(session)
+  if (!permission?._id) {
+    throw new CustomError(404, 'PERMISSION_NOT_FOUND')
+  }
 
   return permission
 }
 
 export const createAPermissionForMutation = async (params, user, session) => {
   const { action, module } = params || {}
-  const permission = await createAPermission({ action, created_by: user?._id, module }, null, session)
-  if (!permission?._id) throw new CustomError(500, 'COULD_NOT_CREATE_PERMISSION')
+
+  const permission = await createAPermission({ action, created_by: user?._id, module }, session)
+  if (!permission?._id) {
+    throw new CustomError(500, 'COULD_NOT_CREATE_PERMISSION')
+  }
 
   return permission
 }
 
-export const updateAPermissionForMutation = async (params, session) => {
-  const { data, entity_id } = params || {}
-  const permission = await permissionHelper.getAPermission({ where: { _id: entity_id } }, session)
-  if (!permission?._id) throw new CustomError(404, 'PERMISSION_NOT_FOUND')
+export const updateAPermissionForMutation = async (params, user, session) => {
+  const { queryData, inputData } = params || {}
+  const { action, module } = inputData || {}
 
-  permission.set(data)
-  await permission.save({ session })
+  const updatingData = {}
+  if (action) updatingData.action = action
+  if (module) updatingData.module = module
 
-  return permission
+  if (!size(updatingData)) {
+    throw new CustomError(400, 'NO_DATA_TO_UPDATE')
+  }
+
+  return updateAPermission({ query: { _id: queryData?.collection_id } }, updatingData, session)
 }
 
-export const deleteAPermissionForMutation = async (params, session) => {
-  const { entity_id } = params || {}
-  const permission = await permissionHelper.getAPermission({ where: { _id: entity_id } }, session)
-  if (!permission?._id) throw new CustomError(404, 'PERMISSION_NOT_FOUND')
-
-  await permission.deleteOne({ session })
-
-  return permission
-}
+export const deleteAPermissionForMutation = async (query, user, session) =>
+  deleteAPermission({ query: { _id: query?.collection_id } }, session)

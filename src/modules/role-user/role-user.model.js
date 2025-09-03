@@ -4,18 +4,18 @@ import { v4 as uuidv4 } from 'uuid'
 const roleUserSchema = new mongoose.Schema(
   {
     _id: {
-      type: String,
-      default: uuidv4
+      default: uuidv4,
+      type: String
     },
     role_id: {
-      type: String,
-      ref: 'Role',
-      required: true
+      ref: 'roles',
+      required: true,
+      type: String
     },
     user_id: {
-      type: String,
-      ref: 'User',
-      required: true
+      ref: 'users',
+      required: true,
+      type: String
     }
   },
   {
@@ -24,8 +24,7 @@ const roleUserSchema = new mongoose.Schema(
 )
 
 roleUserSchema.index({ created_at: 1 })
-roleUserSchema.index({ role_id: 1 })
-roleUserSchema.index({ user_id: 1 })
+roleUserSchema.index({ role_id: 1, user_id: 1 }, { unique: true })
 roleUserSchema.index({ updated_at: 1 })
 
-export const RoleUser = mongoose.model('RoleUser', roleUserSchema)
+export const RoleUser = mongoose.model('role_users', roleUserSchema)

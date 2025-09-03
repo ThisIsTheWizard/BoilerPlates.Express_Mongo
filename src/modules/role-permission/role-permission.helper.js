@@ -3,26 +3,31 @@ import { isBoolean, size } from 'lodash'
 // Models
 import { RolePermission } from 'src/modules/models'
 
-// Helpers
-import { commonHelper } from 'src/modules/helpers'
-
 // Utils
 import { CustomError } from 'src/utils/error'
 
-export const countRolePermissions = async (options) => RolePermission.countDocuments(options?.where)
+export const countRolePermissions = async (query) => RolePermission.countDocuments(query)
 
-export const getARolePermission = async (options, session) => RolePermission.findOne(options).session(session)
+export const getARolePermission = async (options, session) => {
+  const { populate, query, select, skip, sort } = options || {}
 
-export const getRolePermissions = async (options, session) => RolePermission.find(options).session(session)
+  return RolePermission.findOne(query, select, { populate, skip, sort }).session(session)
+}
+
+export const getRolePermissions = async (options, session) => {
+  const { limit, populate, query, select, skip, sort } = options || {}
+
+  return RolePermission.find(query, select, { limit, populate, skip, sort }).session(session)
+}
 
 export const prepareRolePermissionQuery = (params) => {
   const query = {}
 
-  if (size(params?.exclude_entity_ids) || size(params?.include_entity_ids)) {
+  if (size(params?.exclude_collection_ids) || size(params?.include_collection_ids)) {
     query._id = {
       $and: [
-        ...(size(params?.exclude_entity_ids) ? [{ $nin: params?.exclude_entity_ids }] : []),
-        ...(size(params?.include_entity_ids) ? [{ $in: params?.include_entity_ids }] : [])
+        ...(size(params?.exclude_collection_ids) ? [{ $nin: params?.exclude_collection_ids }] : []),
+        ...(size(params?.include_collection_ids) ? [{ $in: params?.include_collection_ids }] : [])
       ]
     }
   }
@@ -40,9 +45,10 @@ export const prepareRolePermissionQuery = (params) => {
 }
 
 export const getARolePermissionForQuery = async (params) => {
-  commonHelper.validateRequiredProps(['entity_id'], params)
-
-  const rolePermission = await getARolePermission({ _id: params?.entity_id }).populate('permission').populate('role')
+  const rolePermission = await getARolePermission({
+    populate: ['permission', 'role'],
+    query: { _id: params?.collection_id }
+  })
   if (!rolePermission?._id) {
     throw new CustomError(404, 'ROLE_PERMISSION_NOT_FOUND')
   }
@@ -50,12 +56,18 @@ export const getARolePermissionForQuery = async (params) => {
   return rolePermission
 }
 
-export const getRolePermissionsForQuery = async (params, options) => {
-  const { limit, skip, sort } = options || {}
+export const getRolePermissionsForQuery = async (params) => {
+  const { limit, skip, sort } = params?.options || {}
 
-  const where = prepareRolePermissionQuery(params)
-  const data = await getRolePermissions({ where, limit, skip, sort }).populate('permission').populate('role')
-  const filtered_rows = await countRolePermissions({ where })
+  const query = prepareRolePermissionQuery(params?.query || {})
+  const data = await getRolePermissions({
+    limit,
+    populate: ['permission', 'role'],
+    query,
+    skip,
+    sort
+  })
+  const filtered_rows = await countRolePermissions(query)
   const total_rows = await countRolePermissions({})
 
   return { data, meta_data: { filtered_rows, total_rows } }

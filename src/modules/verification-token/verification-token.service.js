@@ -1,8 +1,8 @@
 import { omit } from 'lodash'
 import moment from 'moment-timezone'
 
-// Entities
-import { VerificationTokenEntity } from 'src/modules/entities'
+// Models
+import { VerificationToken } from 'src/modules/models'
 
 // Helpers
 import { commonHelper, userHelper, verificationTokenHelper } from 'src/modules/helpers'
@@ -13,36 +13,46 @@ import { notificationService } from 'src/modules/services'
 // Utils
 import { CustomError } from 'src/utils/error'
 
-export const createAVerificationToken = async (data, options, session) =>
-  VerificationTokenEntity.create(data, { ...options, session })
+export const createAVerificationToken = async (data, session) => {
+  const [verificationToken] = await VerificationToken.create([data], { session })
+  return verificationToken
+}
 
 export const updateAVerificationToken = async (options, data, session) => {
-  const verificationToken = await verificationTokenHelper.getAVerificationToken(options, session)
-  if (!verificationToken?.id) {
+  const { query, skip, sort } = options || {}
+
+  const verificationToken = await VerificationToken.findOneAndUpdate(query, data, { new: true, skip, sort }).session(
+    session
+  )
+  if (!verificationToken?._id) {
     throw new CustomError(404, 'VERIFICATION_TOKEN_NOT_FOUND')
   }
-
-  await verificationToken.update(data, { session })
 
   return verificationToken
 }
 
-export const updateVerificationTokens = async (options, data, session) =>
-  VerificationTokenEntity.update(data, { ...options, session })
+export const updateVerificationTokens = async (options, data, session) => {
+  const { query, skip, sort } = options || {}
+
+  return VerificationToken.updateMany(query, data, { skip, sort }).session(session)
+}
 
 export const deleteAVerificationToken = async (options, session) => {
-  const verificationToken = await verificationTokenHelper.getAVerificationToken(options, session)
-  if (!verificationToken?.id) {
+  const { query, skip, sort } = options || {}
+
+  const verificationToken = await VerificationToken.findOneAndDelete(query, { skip, sort }).session(session)
+  if (!verificationToken?._id) {
     throw new CustomError(404, 'VERIFICATION_TOKEN_NOT_FOUND')
   }
-
-  await verificationToken.destroy({ session })
 
   return verificationToken
 }
 
-export const deleteVerificationTokens = async (options, session) =>
-  VerificationTokenEntity.destroy({ ...options, session })
+export const deleteVerificationTokens = async (options, session) => {
+  const { query, skip, sort } = options || {}
+
+  return VerificationToken.deleteMany(query, { skip, sort }).session(session)
+}
 
 export const createAVerificationTokenForUser = async (params, session) => {
   commonHelper.validateProps(
@@ -63,7 +73,6 @@ export const createAVerificationTokenForUser = async (params, session) => {
 
   const verificationToken = await createAVerificationToken(
     { email, token: commonHelper.getRandomNumber(6), type, user_id },
-    null,
     session
   )
   if (!verificationToken?.id) {
@@ -95,12 +104,12 @@ export const validateVerificationTokenForUser = async (params = {}, session) => 
     throw new Error('TYPE_IS_INVALID')
   }
 
-  const where = { status: 'unverified', token, type }
+  const query = { status: 'unverified', token, type }
 
-  if (email) where.email = email
-  if (user_id) where.user_id = user_id
+  if (email) query.email = email
+  if (user_id) query.user_id = user_id
 
-  const verificationToken = await verificationTokenHelper.getAVerificationToken({ where }, session)
+  const verificationToken = await verificationTokenHelper.getAVerificationToken({ query }, session)
   if (!verificationToken?.id) {
     throw new Error('OTP_IS_NOT_VALID')
   }
@@ -108,7 +117,7 @@ export const validateVerificationTokenForUser = async (params = {}, session) => 
     throw new Error('OTP_IS_EXPIRED')
   }
 
-  await deleteVerificationTokens({ where: omit(where, ['token']) }, session)
+  await deleteVerificationTokens({ query: omit(query, ['token']) }, session)
 
   return verificationToken
 }
