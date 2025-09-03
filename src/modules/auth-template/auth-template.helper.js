@@ -1,22 +1,35 @@
+// Models
 import { AuthTemplate } from 'src/modules/models'
-
-// Helpers
-import {} from 'src/modules/helpers'
 
 // Utils
 import { CustomError } from 'src/utils/error'
 
-export const getAnAuthTemplate = async (options, session) => AuthTemplate.findOne(options.where).session(session)
+export const countAuthTemplates = async (query) => AuthTemplate.countDocuments(query)
 
-export const getAuthTemplates = async (options, session) => AuthTemplate.find(options.where).session(session)
+export const getAnAuthTemplate = async (options, session) => {
+  const { populate, query, select, skip, sort } = options || {}
 
-export const countAuthTemplates = async (options) => AuthTemplate.countDocuments(options.where)
+  return AuthTemplate.findOne(query, select, { populate, skip, sort }).session(session)
+}
+
+export const getAuthTemplates = async (options, session) => {
+  const { limit, populate, query, select, skip, sort } = options || {}
+
+  return AuthTemplate.find(query, select, { limit, populate, skip, sort }).session(session)
+}
 
 export const prepareAuthTemplateQuery = (params = {}) => {
   const query = {}
 
-  if (params?.entity_id) query._id = params.entity_id
   if (params?.event) query.event = params.event
+  if (size(params?.exclude_collection_ids) || size(params?.include_collection_ids)) {
+    query._id = {
+      $and: [
+        ...(size(params?.exclude_collection_ids) ? [{ $nin: params?.exclude_collection_ids }] : []),
+        ...(size(params?.include_collection_ids) ? [{ $in: params?.include_collection_ids }] : [])
+      ]
+    }
+  }
   if (params?.search_keyword) {
     const searchPattern = { $regex: params.search_keyword, $options: 'i' }
     query.$or = [
@@ -33,26 +46,26 @@ export const prepareAuthTemplateQuery = (params = {}) => {
 }
 
 export const getAnAuthTemplateForQuery = async (params) => {
-  const query = prepareAuthTemplateQuery(params)
-  const authTemplate = await getAnAuthTemplate({ where: query })
-  if (!authTemplate?._id) throw new CustomError(404, 'AUTH_TEMPLATE_NOT_FOUND')
+  const authTemplate = await getAnAuthTemplate({ query: { _id: params?.collection_id } })
+  if (!authTemplate?._id) {
+    throw new CustomError(404, 'AUTH_TEMPLATE_NOT_FOUND')
+  }
 
   return authTemplate
 }
 
 export const getAuthTemplatesForQuery = async (params) => {
-  const { options = {}, query = {} } = params || {}
-  const { limit, skip, sort } = options || {}
+  const { limit, skip, sort } = params?.options || {}
 
-  const where = prepareAuthTemplateQuery(query)
-  const authTemplates = await getAuthTemplates({
+  const query = prepareAuthTemplateQuery(params?.query || {})
+  const data = await getAuthTemplates({
     limit,
     skip,
     sort,
-    where
+    query
   })
-  const filtered_rows = await countAuthTemplates({ where })
-  const total_rows = await countAuthTemplates({ where: {} })
+  const filtered_rows = await countAuthTemplates(query)
+  const total_rows = await countAuthTemplates({})
 
-  return { data: authTemplates, meta_data: { filtered_rows, total_rows } }
+  return { data, meta_data: { filtered_rows, total_rows } }
 }

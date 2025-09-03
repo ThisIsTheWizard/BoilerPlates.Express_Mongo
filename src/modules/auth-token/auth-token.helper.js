@@ -1,29 +1,32 @@
+// Models
 import { AuthToken } from 'src/modules/models'
-
-// Helpers
-import {} from 'src/modules/helpers'
-
-// Services
-import {} from 'src/modules/services'
 
 // Utils
 import { CustomError } from 'src/utils/error'
 
 export const countAuthTokens = async (options) => AuthToken.countDocuments(options)
 
-export const getAnAuthToken = async (options, session) => AuthToken.findOne(options).session(session)
+export const getAnAuthToken = async (options, session) => {
+  const { populate, query, select, skip, sort } = options || {}
 
-export const getAuthTokens = async (options, session) => AuthToken.find(options).session(session)
+  return AuthToken.findOne(query, select, { populate, skip, sort }).session(session)
+}
+
+export const getAuthTokens = async (options, session) => {
+  const { populate, query, select, skip, sort } = options || {}
+
+  return AuthToken.findOne(query, select, { populate, skip, sort }).session(session)
+}
 
 export const prepareAuthTokenQuery = (params = {}) => {
   const query = {}
 
   if (params?.access_token) query.access_token = params.access_token
-  if (size(params?.exclude_entity_ids) || size(params?.include_entity_ids)) {
+  if (size(params?.exclude_collection_ids) || size(params?.include_collection_ids)) {
     query._id = {
       $and: [
-        ...(size(params?.exclude_entity_ids) ? [{ $nin: params?.exclude_entity_ids }] : []),
-        ...(size(params?.include_entity_ids) ? [{ $in: params?.include_entity_ids }] : [])
+        ...(size(params?.exclude_collection_ids) ? [{ $nin: params?.exclude_collection_ids }] : []),
+        ...(size(params?.include_collection_ids) ? [{ $in: params?.include_collection_ids }] : [])
       ]
     }
   }
@@ -34,8 +37,7 @@ export const prepareAuthTokenQuery = (params = {}) => {
 }
 
 export const getAnAuthTokenForQuery = async (params) => {
-  const query = prepareAuthTokenQuery(params)
-  const authToken = await getAnAuthToken({ query })
+  const authToken = await getAnAuthToken({ query: { _id: params?.collection_id } })
   if (!authToken?._id) {
     throw new CustomError(404, 'AUTH_TOKEN_NOT_FOUND')
   }
@@ -44,11 +46,10 @@ export const getAnAuthTokenForQuery = async (params) => {
 }
 
 export const getAuthTokensForQuery = async (params) => {
-  const { options = {} } = params || {}
-  const { limit, skip, sort } = options || {}
+  const { limit, skip, sort } = params?.options || {}
 
-  const query = prepareAuthTokenQuery(params?.query)
-  const authTokens = await getAuthTokens({
+  const query = prepareAuthTokenQuery(params?.query || {})
+  const data = await getAuthTokens({
     limit,
     skip,
     sort,
@@ -57,5 +58,5 @@ export const getAuthTokensForQuery = async (params) => {
   const filtered_rows = await countAuthTokens(query)
   const total_rows = await countAuthTokens({})
 
-  return { data: authTokens, meta_data: { filtered_rows, total_rows } }
+  return { data, meta_data: { filtered_rows, total_rows } }
 }

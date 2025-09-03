@@ -39,7 +39,7 @@ export const getARoleForQuery = async (params) => {
   // TODO: Implement this with populate
   const role = await getARole({ where: { _id: params?.entity_id } })
   if (!role?._id) {
-    throw new CustomError(404, 'ROLE_DOES_NOT_EXIST')
+    throw new CustomError(404, 'ROLE_NOT_FOUND')
   }
 
   return JSON.parse(JSON.stringify(role))

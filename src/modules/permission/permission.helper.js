@@ -37,7 +37,7 @@ export const getAPermissionForQuery = async (query) => {
 
   const permission = await getAPermission({ where: { _id: query.entity_id } })
   if (!permission?._id) {
-    throw new CustomError(404, 'PERMISSION_DOES_NOT_EXIST')
+    throw new CustomError(404, 'PERMISSION_NOT_FOUND')
   }
 
   return permission

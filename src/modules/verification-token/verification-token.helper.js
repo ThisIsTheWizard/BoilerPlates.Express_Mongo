@@ -35,7 +35,7 @@ export const getAVerificationTokenForQuery = async (params) => {
 
   const verificationToken = await getAVerificationToken({ where: { _id: params.entity_id } })
   if (!verificationToken?._id) {
-    throw new CustomError(404, 'VERIFICATION_TOKEN_DOES_NOT_EXIST')
+    throw new CustomError(404, 'VERIFICATION_TOKEN_NOT_FOUND')
   }
 
   return verificationToken

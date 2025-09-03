@@ -23,7 +23,7 @@ export const updateAUser = async (options, data, session) => {
 
   const user = await User.findOneAndUpdate(query, data, { new: true, skip, sort }).session(session)
   if (!user?._id) {
-    throw new CustomError(404, 'USER_DOES_NOT_EXISTS')
+    throw new CustomError(404, 'USER_NOT_FOUND')
   }
 
   return user
@@ -34,7 +34,7 @@ export const deleteAUser = async (options, session) => {
 
   const user = await User.findOneAndDelete(query, { skip, sort }).session(session)
   if (!user?._id) {
-    throw new CustomError(404, 'USER_DOES_NOT_EXISTS')
+    throw new CustomError(404, 'USER_NOT_FOUND')
   }
 
   return user
@@ -103,7 +103,7 @@ export const resendUserVerificationEmail = async (params = {}, session) => {
   const { email } = params || {}
   const user = await userHelper.getAUser({ query: { $or: [{ email }, { new_email: email }] } }, session)
   if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
+    throw new Error('USER_NOT_FOUND')
   }
   if (!(user?.status === 'unverified') && !user?.new_email) {
     throw new Error('USER_IS_ALREADY_VERIFIED')
@@ -149,7 +149,7 @@ export const loginUser = async (params = {}, session) => {
 
   const user = await userHelper.getAUser({ populate: 'roles', query: { email } }, session)
   if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
+    throw new Error('USER_NOT_FOUND')
   }
   if (!(user?.status === 'active')) {
     throw new Error(`USER_IS_${user?.status?.toUpperCase?.()}`)
@@ -314,7 +314,7 @@ export const changePasswordByUser = async (params = {}, session) => {
 
   const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
   if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
+    throw new Error('USER_NOT_FOUND')
   }
   if (!(user?.status === 'active')) {
     throw new Error(`USER_IS_${user?.status?.toUpperCase?.()}`)
@@ -338,7 +338,7 @@ export const changePasswordByUser = async (params = {}, session) => {
     session
   )
 
-  await authTokenService.deleteAuthTokens({ user_id }, session)
+  await authTokenService.deleteAuthTokens({ query: { user_id } }, session)
 
   return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
@@ -356,7 +356,7 @@ export const changePasswordByAdmin = async (params = {}, session) => {
 
   const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
   if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
+    throw new Error('USER_NOT_FOUND')
   }
 
   const hashPassword = commonService.generateHashPassword(password)
@@ -367,7 +367,7 @@ export const changePasswordByAdmin = async (params = {}, session) => {
     session
   )
 
-  await authTokenService.deleteAuthTokens({ user_id }, session)
+  await authTokenService.deleteAuthTokens({ query: { user_id } }, session)
 
   return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }
@@ -379,7 +379,7 @@ export const forgotPassword = async (params = {}, session) => {
 
   const user = await userHelper.getAUser({ query: { email } }, session)
   if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
+    throw new Error('USER_NOT_FOUND')
   }
 
   const existingTokens = await verificationTokenHelper.getVerificationTokens(
@@ -416,7 +416,7 @@ export const retryForgotPassword = async (params = {}, session) => {
 
   const user = await userHelper.getAUser({ query: { email } }, session)
   if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
+    throw new Error('USER_NOT_FOUND')
   }
 
   const existingTokens = await verificationTokenHelper.getVerificationTokens(
@@ -507,7 +507,7 @@ export const verifyForgotPassword = async (params = {}, session) => {
     session
   )
 
-  await authTokenService.deleteAuthTokens({ user_id: user?._id }, session)
+  await authTokenService.deleteAuthTokens({ query: { user_id: user?._id } }, session)
 
   return omit(user, ['created_at', 'new_email', 'old_passwords', 'password', 'updated_at'])
 }

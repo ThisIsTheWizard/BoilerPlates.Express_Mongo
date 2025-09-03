@@ -54,12 +54,12 @@ export const createARolePermissionForMutation = async (params, user, session) =>
 
   const role = await roleHelper.getARole({ where: { _id: role_id } }, session)
   if (!role?._id) {
-    throw new CustomError(404, 'ROLE_DOES_NOT_EXIST')
+    throw new CustomError(404, 'ROLE_NOT_FOUND')
   }
 
   const permission = await permissionHelper.getAPermission({ where: { _id: permission_id } }, session)
   if (!permission?._id) {
-    throw new CustomError(404, 'PERMISSION_DOES_NOT_EXIST')
+    throw new CustomError(404, 'PERMISSION_NOT_FOUND')
   }
 
   const existingRolePerm = await rolePermissionHelper.getARolePermission({ permission_id, role_id }, session)

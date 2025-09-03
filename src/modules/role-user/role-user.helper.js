@@ -41,7 +41,7 @@ export const getARoleUserForQuery = async (params) => {
 
   const roleUser = await getARoleUser({ _id: params?.entity_id }).populate('role').populate('user')
   if (!roleUser?._id) {
-    throw new CustomError(404, 'ROLE_USER_DOES_NOT_EXIST')
+    throw new CustomError(404, 'ROLE_USER_NOT_FOUND')
   }
 
   return roleUser

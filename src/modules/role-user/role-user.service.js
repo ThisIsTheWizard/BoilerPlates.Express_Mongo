@@ -48,12 +48,12 @@ export const createARoleUserForMutation = async (params, session) => {
 
   const role = await roleHelper.getARole({ where: { _id: role_id } }, session)
   if (!role?._id) {
-    throw new CustomError(404, 'ROLE_DOES_NOT_EXIST')
+    throw new CustomError(404, 'ROLE_NOT_FOUND')
   }
 
   const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
   if (!user?._id) {
-    throw new CustomError(404, 'USER_DOES_NOT_EXIST')
+    throw new CustomError(404, 'USER_NOT_FOUND')
   }
 
   const existingRoleUser = await roleUserHelper.getARoleUser({ role_id, user_id }, session)
@@ -85,19 +85,19 @@ export const updateARoleUserForMutation = async (params, session) => {
 
   const roleUser = await roleUserHelper.getARoleUser({ _id: entity_id }, session)
   if (!roleUser?._id) {
-    throw new CustomError(404, 'ROLE_USER_DOES_NOT_EXIST')
+    throw new CustomError(404, 'ROLE_USER_NOT_FOUND')
   }
 
   if (role_id) {
     const role = await roleHelper.getARole({ where: { _id: role_id } }, session)
     if (!role?._id) {
-      throw new CustomError(404, 'ROLE_DOES_NOT_EXIST')
+      throw new CustomError(404, 'ROLE_NOT_FOUND')
     }
   }
   if (user_id) {
     const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
     if (!user?._id) {
-      throw new CustomError(404, 'USER_DOES_NOT_EXIST')
+      throw new CustomError(404, 'USER_NOT_FOUND')
     }
   }
 
@@ -128,7 +128,7 @@ export const assignARoleToUserByName = async (params, session) => {
 
   const role = await roleHelper.getARole({ where: { name: params?.role_name } }, session)
   if (!role?._id) {
-    throw new CustomError(404, 'ROLE_DOES_NOT_EXIST')
+    throw new CustomError(404, 'ROLE_NOT_FOUND')
   }
 
   roleUserCreationData.role_id = role._id
@@ -141,7 +141,7 @@ export const revokeARoleFromUserByName = async (params, session) => {
 
   const role = await roleHelper.getARole({ where: { name: params?.role_name } })
   if (!role?._id) {
-    throw new CustomError(404, 'ROLE_DOES_NOT_EXIST')
+    throw new CustomError(404, 'ROLE_NOT_FOUND')
   }
 
   const removedRoleUser = await roleUserService.deleteARoleUser(

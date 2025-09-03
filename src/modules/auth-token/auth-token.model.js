@@ -4,25 +4,25 @@ import { v4 as uuidv4 } from 'uuid'
 const authTokenSchema = new mongoose.Schema(
   {
     _id: {
-      type: String,
-      default: uuidv4
+      default: uuidv4,
+      type: String
     },
     access_token: {
-      type: String,
-      required: true
+      required: true,
+      type: String
     },
     expires_at: {
-      type: Date,
-      default: null
+      default: null,
+      type: Date
     },
     refresh_token: {
-      type: String,
-      default: null
+      default: null,
+      type: String
     },
     user_id: {
-      type: String,
-      ref: 'User',
-      required: true
+      ref: 'users',
+      required: true,
+      type: String
     }
   },
   {
@@ -35,4 +35,4 @@ authTokenSchema.index({ created_at: 1 })
 authTokenSchema.index({ refresh_token: 1 })
 authTokenSchema.index({ updated_at: 1 })
 
-export const AuthToken = mongoose.model('AuthToken', authTokenSchema)
+export const AuthToken = mongoose.model('auth_tokens', authTokenSchema)

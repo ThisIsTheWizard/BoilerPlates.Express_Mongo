@@ -73,7 +73,7 @@ export const getAuthUserWithRolesAndPermissions = async ({ roles, user_id }) => 
   })
 
   if (!user?._id) {
-    throw new Error('USER_DOES_NOT_EXIST')
+    throw new Error('USER_NOT_FOUND')
   }
 
   const result = JSON.parse(JSON.stringify(user))

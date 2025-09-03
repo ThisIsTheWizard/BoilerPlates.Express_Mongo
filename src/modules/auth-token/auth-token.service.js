@@ -10,34 +10,40 @@ import { commonService } from 'src/modules/services'
 // Utils
 import { CustomError } from 'src/utils/error'
 
-export const createAnAuthToken = async (data, options, transaction) =>
-  AuthToken.create(data, { ...options, transaction })
+export const createAnAuthToken = async (data, session) => {
+  const [authToken] = await AuthToken.create([data], { session })
+  return authToken
+}
 
-export const updateAnAuthToken = async (options, data, transaction) => {
-  const authToken = await authTokenHelper.getAnAuthToken(options, transaction)
-  if (!authToken?.id) {
+export const updateAnAuthToken = async (options, data, session) => {
+  const { query, skip, sort } = options || {}
+
+  const authToken = await AuthToken.findOneAndUpdate(query, data, { new: true, skip, sort }).session(session)
+  if (!authToken?._id) {
     throw new CustomError(404, 'AUTH_TOKEN_NOT_FOUND')
   }
-
-  await authToken.update(data, { transaction })
 
   return authToken
 }
 
-export const deleteAnAuthToken = async (options, transaction) => {
-  const authToken = await authTokenHelper.getAnAuthToken(options, transaction)
-  if (!authToken?.id) {
+export const deleteAnAuthToken = async (options, session) => {
+  const { query, skip, sort } = options || {}
+
+  const authToken = await AuthToken.findOneAndDelete(query, { skip, sort }).session(session)
+  if (!authToken?._id) {
     throw new CustomError(404, 'AUTH_TOKEN_NOT_FOUND')
   }
-
-  await authToken.destroy({ transaction })
 
   return authToken
 }
 
-export const deleteAuthTokens = async (options, transaction) => AuthToken.destroy({ ...options, transaction })
+export const deleteAuthTokens = async (options, session) => {
+  const { query, skip, sort } = options || {}
 
-export const createAuthTokensForUser = async (params, transaction) => {
+  return AuthToken.deleteMany(query, { skip, sort }).session(session)
+}
+
+export const createAuthTokensForUser = async (params, session) => {
   commonHelper.validateRequiredProps(['roles', 'user_id'], params)
 
   const { roles, user_id } = params || {}
@@ -48,7 +54,7 @@ export const createAuthTokensForUser = async (params, transaction) => {
   const access_token = commonService.generateJWTToken({ roles, sub: user_id, user_id }, accessTokenExpiry)
   const refresh_token = commonService.generateJWTToken({ sub: user_id, user_id }, refreshTokenExpiry)
 
-  const authToken = await createAnAuthToken({ access_token, refresh_token, user_id }, null, transaction)
+  const authToken = await createAnAuthToken({ access_token, refresh_token, user_id }, session)
   if (!authToken?.id) {
     throw new Error('COULD_NOT_CREATE_AUTH_TOKEN')
   }
@@ -72,7 +78,7 @@ export const verifyAnAuthTokenForUser = async (params = {}) => {
 
   const { user_id } = commonService.decodeJWTToken(token) || {}
   const authToken = await authTokenHelper.getAnAuthToken({
-    where: { [type]: token, user_id }
+    query: { [type]: token, user_id }
   })
   if (!authToken?.id) {
     return { message: 'INVALID_TOKEN', success: false }
@@ -81,7 +87,7 @@ export const verifyAnAuthTokenForUser = async (params = {}) => {
   return commonService.verifyJWTToken(token) || {}
 }
 
-export const refreshAuthTokensForUser = async (params = {}, transaction) => {
+export const refreshAuthTokensForUser = async (params = {}, session) => {
   commonHelper.validateProps(
     [
       { field: 'refresh_token', required: true, type: 'string' },
@@ -95,28 +101,20 @@ export const refreshAuthTokensForUser = async (params = {}, transaction) => {
 
   commonService.verifyJWTToken(refresh_token)
 
-  const authToken = await authTokenHelper.getAnAuthToken(
-    { include: [{ association: 'user' }], where: { refresh_token, user_id } },
-    transaction
-  )
-  if (!authToken?.id) {
-    throw new Error('REFRESH_TOKEN_IS_INVALID')
-  }
+  await deleteAnAuthToken({ query: { refresh_token, user_id } }, session)
 
-  const { user } = authToken || {}
+  const user = await userHelper.getAUser({ query: { id: user_id } }, session)
   if (!user?.id) {
-    throw new Error('USER_DOES_NOT_EXIST')
+    throw new Error('USER_NOT_FOUND')
   }
   if (!(user?.status === 'active')) {
     throw new Error('USER_IS_NOT_ACTIVE')
   }
 
-  await authToken.destroy({ transaction })
-
-  return createAuthTokensForUser({ roles, user_id }, transaction)
+  return createAuthTokensForUser({ roles, user_id }, session)
 }
 
-export const revokeAnAuthTokenForUser = async (params = {}, transaction) => {
+export const revokeAnAuthTokenForUser = async (params = {}, session) => {
   commonHelper.validateProps(
     [
       { field: 'token', required: true, type: 'string' },
@@ -130,7 +128,7 @@ export const revokeAnAuthTokenForUser = async (params = {}, transaction) => {
     throw new Error('TOKEN_TYPE_IS_INVALID')
   }
 
-  const authToken = await deleteAnAuthToken({ where: { [type]: token } }, transaction)
+  const authToken = await deleteAnAuthToken({ query: { [type]: token } }, session)
   if (!authToken?.id) {
     return { message: 'INVALID_TOKEN', success: false }
   }
@@ -138,11 +136,11 @@ export const revokeAnAuthTokenForUser = async (params = {}, transaction) => {
   return { message: 'LOGGED_OUT', success: true }
 }
 
-export const revokeAuthTokensForUser = async (params = {}, transaction) => {
+export const revokeAuthTokensForUser = async (params = {}, session) => {
   commonHelper.validateProps([{ field: 'user_id', required: true, type: 'string' }], params)
 
   const { user_id } = params || {}
-  const user = await userHelper.getAUser({ where: { id: user_id } }, transaction)
+  const user = await userHelper.getAUser({ query: { id: user_id } }, session)
   if (!user?.id) {
     throw new Error('USER_IS_NOT_FOUND')
   }
@@ -150,7 +148,7 @@ export const revokeAuthTokensForUser = async (params = {}, transaction) => {
     throw new Error('USER_IS_NOT_ACTIVE')
   }
 
-  const deletedCount = await deleteAuthTokens({ where: { user_id } }, transaction)
+  const deletedCount = await deleteAuthTokens({ query: { user_id } }, session)
   if (deletedCount <= 0) {
     return { message: 'INVALID_TOKEN', success: false }
   }

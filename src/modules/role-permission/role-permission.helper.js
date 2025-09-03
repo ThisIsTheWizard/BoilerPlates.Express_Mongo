@@ -44,7 +44,7 @@ export const getARolePermissionForQuery = async (params) => {
 
   const rolePermission = await getARolePermission({ _id: params?.entity_id }).populate('permission').populate('role')
   if (!rolePermission?._id) {
-    throw new CustomError(404, 'ROLE_PERMISSION_DOES_NOT_EXIST')
+    throw new CustomError(404, 'ROLE_PERMISSION_NOT_FOUND')
   }
 
   return rolePermission
