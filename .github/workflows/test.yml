@@ -21,11 +21,6 @@ jobs:
         with:
           node-version: '22.x'
 
-      - name: Generate mongo keyfile
-        run: |
-          openssl rand -base64 756 > mongo-keyfile
-          chmod 400 mongo-keyfile
-
       - name: Install dependencies
         run: npm install -g pnpm && pnpm i
 
