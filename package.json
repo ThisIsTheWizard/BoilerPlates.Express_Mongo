@@ -17,7 +17,7 @@
     "format": "prettier . --write",
     "lint": "eslint --quiet . --ignore-pattern build/ --ignore-pattern test/",
     "lint-fix": "eslint --quiet . --fix",
-    "pretest": "pnpm run compose:test-down && pnpm run compose:test-up && sleep 15",
+    "pretest": "pnpm run compose:test-down && pnpm run compose:test-up && sleep 30",
     "test": "mocha --require @babel/register --file test/setup.js --recursive test/**/*.test.js --timeout 12000"
   },
   "dependencies": {
