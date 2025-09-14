@@ -2,7 +2,7 @@ import axios from 'axios'
 import { expect } from 'chai'
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: `http://localhost:${process.env.PORT || 8000}`,
   timeout: 10000
 })
 
