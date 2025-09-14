@@ -2,8 +2,6 @@ FROM node:20-slim
 
 LABEL org.opencontainers.image.authors="Elias Shekh"
 
-RUN apt-get update -y && apt-get install -y openssl && openssl rand -base64 756 > mongo-keyfile && chmod 600 mongo-keyfile
-
 WORKDIR /app
 
 COPY package.json .
