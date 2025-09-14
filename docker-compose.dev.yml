@@ -64,7 +64,7 @@ services:
   node_server:
     build:
       context: .
-      dockerfile: ${DOCKERFILE:-Dockerfile}
+      dockerfile: Dockerfile.Dev
     container_name: node_server_container
     ports:
       - '8000:8000'
