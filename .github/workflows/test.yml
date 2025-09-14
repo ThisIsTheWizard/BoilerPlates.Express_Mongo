@@ -25,10 +25,9 @@ jobs:
         run: |
           openssl rand -base64 756 > mongo-keyfile
           chmod 400 mongo-keyfile
-          cat mongo-keyfile
 
       - name: Install dependencies
         run: npm install -g pnpm && pnpm i
 
       - name: Run tests
-        run: docker compose -f docker-compose.test.yml up --build
+        run: pnpm run test
