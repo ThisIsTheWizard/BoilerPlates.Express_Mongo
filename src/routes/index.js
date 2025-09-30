@@ -4,7 +4,7 @@ import { Router } from 'express'
 import { docRouter, permissionRouter, roleRouter, userRouter } from 'src/modules/routers'
 
 // Utils
-import { startDBSetupForTesting } from 'src/utils/seed'
+import { getLatestVerificationTokenForTesting, startDBSetupForTesting } from 'src/utils/seed'
 
 const router = Router()
 
@@ -18,5 +18,6 @@ router.use('/users', userRouter)
 
 // Test
 router.post('/test/setup', startDBSetupForTesting)
+router.get('/test/verification-tokens', getLatestVerificationTokenForTesting)
 
 export default router

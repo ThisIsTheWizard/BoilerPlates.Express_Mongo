@@ -267,7 +267,17 @@ export const verifyChangeEmailByUser = async (params = {}, session) => {
     session
   )
 
-  const user = await updateAUser({ query: { _id: user_id } }, { email: user?.new_email, new_email: null }, session)
+  const existingUser = await userHelper.getAUser({ query: { _id: user_id } }, session)
+  if (!existingUser?._id) {
+    throw new Error('USER_NOT_FOUND')
+  }
+
+  const newEmail = existingUser?.new_email
+  if (!newEmail) {
+    throw new Error('NEW_EMAIL_IS_NOT_FOUND')
+  }
+
+  const user = await updateAUser({ query: { _id: user_id } }, { email: newEmail, new_email: null }, session)
   if (!(user?.status === 'active')) {
     throw new Error(`USER_IS_${user?.status?.toUpperCase?.()}`)
   }

@@ -1,75 +1,106 @@
 import { api, authToken, expect } from 'test/setup'
 
 describe('Permission Mutation Tests', () => {
-  let createdPermissionId
+  const authorizedConfig = () => ({ headers: { Authorization: authToken } })
 
   describe('POST /permissions', () => {
-    it('should return 401 for missing token', async () => {
-      try {
-        await api.post('/permissions', { action: 'read', module: 'user' })
-      } catch (error) {
-        expect(error.response.status).to.equal(401)
-      }
-    })
+    let createdPermissionId
 
-    it('should create permission successfully', async () => {
+    it('creates a permission successfully', async () => {
       const response = await api.post(
         '/permissions',
-        { action: 'read', module: 'user' },
-        { headers: { Authorization: authToken } }
+        { action: 'create', module: 'permission' },
+        authorizedConfig()
       )
-      const { data } = response?.data || {}
 
       expect(response.status).to.equal(201)
-      expect(data).to.have.property('_id')
-      expect(data.action).to.equal('read')
-      expect(data.module).to.equal('user')
-      createdPermissionId = data._id
+      expect(response.data.data).to.include({ action: 'create', module: 'permission' })
+      createdPermissionId = response.data.data._id
+      expect(createdPermissionId).to.be.a('string')
+    })
+
+    it('returns 401 when authorization token is missing', async () => {
+      let error
+
+      try {
+        await api.post('/permissions', { action: 'read', module: 'user' })
+      } catch (err) {
+        error = err
+      }
+
+      expect(error?.response?.status).to.equal(401)
+      expect(error?.response?.data?.message).to.equal('MISSING_TOKEN')
     })
   })
 
-  describe('PUT /permissions/:id', () => {
-    it('should return 401 for missing token', async () => {
-      try {
-        await api.put('/permissions/1', { action: 'create', module: 'user' })
-      } catch (error) {
-        expect(error.response.status).to.equal(401)
-      }
+  describe('PUT /permissions/:collection_id', () => {
+    let permissionId
+
+    before(async () => {
+      const createResponse = await api.post(
+        '/permissions',
+        { action: 'read', module: 'role' },
+        authorizedConfig()
+      )
+      permissionId = createResponse.data.data._id
     })
 
-    it('should update permission successfully', async () => {
-      try {
-        const response = await api.put(
-          `/permissions/${createdPermissionId}`,
-          { action: 'create', module: 'user' },
-          { headers: { Authorization: authToken } }
-        )
-        const { data } = response?.data || {}
-
-        expect(response.status).to.equal(200)
-        expect(data?.action).to.equal('create')
-        expect(data?.module).to.equal('user')
-      } catch (error) {
-        console.log(error)
-      }
-    })
-  })
-
-  describe('DELETE /permissions/:id', () => {
-    it('should return 401 for missing token', async () => {
-      try {
-        await api.delete('/permissions/1')
-      } catch (error) {
-        expect(error.response.status).to.equal(401)
-      }
-    })
-
-    it('should delete permission successfully', async () => {
-      const response = await api.delete(`/permissions/${createdPermissionId}`, {
-        headers: { Authorization: authToken }
-      })
+    it('updates a permission successfully', async () => {
+      const response = await api.put(
+        `/permissions/${permissionId}`,
+        { action: 'update' },
+        authorizedConfig()
+      )
 
       expect(response.status).to.equal(200)
+      expect(response.data.data.action).to.equal('update')
+      expect(response.data.data.module).to.equal('role')
+    })
+
+    it('returns 400 when update payload is empty', async () => {
+      let error
+
+      try {
+        await api.put(`/permissions/${permissionId}`, {}, authorizedConfig())
+      } catch (err) {
+        error = err
+      }
+
+      expect(error?.response?.status).to.equal(400)
+      expect(error?.response?.data?.message).to.equal('NO_DATA_TO_UPDATE')
+    })
+  })
+
+  describe('DELETE /permissions/:collection_id', () => {
+    let permissionId
+
+    before(async () => {
+      const createResponse = await api.post(
+        '/permissions',
+        { action: 'delete', module: 'user' },
+        authorizedConfig()
+      )
+      permissionId = createResponse.data.data._id
+    })
+
+    it('deletes a permission successfully', async () => {
+      const response = await api.delete(`/permissions/${permissionId}`, authorizedConfig())
+
+      expect(response.status).to.equal(200)
+      expect(response.data.data._id).to.equal(permissionId)
+    })
+
+    it('returns 404 when permission does not exist', async () => {
+      let error
+
+      try {
+        await api.delete(`/permissions/${permissionId}`, authorizedConfig())
+      } catch (err) {
+        error = err
+      }
+
+      expect(error?.response?.status).to.equal(404)
+      expect(error?.response?.data?.message).to.equal('PERMISSION_NOT_FOUND')
     })
   })
 })

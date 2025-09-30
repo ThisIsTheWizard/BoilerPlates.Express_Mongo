@@ -30,7 +30,7 @@ export const roleRouter = Router()
  *             required:
  *               - name
  *     responses:
- *       201:c
+ *       201:
  *         description: SUCCESS
  *         content:
  *           application/json:
