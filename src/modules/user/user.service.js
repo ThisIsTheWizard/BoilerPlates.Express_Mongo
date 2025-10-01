@@ -111,12 +111,15 @@ export const resendUserVerificationEmail = async (params = {}, session) => {
 
   const existingTokens = await verificationTokenHelper.getVerificationTokens(
     {
-      user_id: user?._id,
-      type: 'user_verification',
-      status: { $in: ['cancelled', 'unverified'] },
-      created_at: { $gte: moment().subtract(10, 'minutes').toDate() }
+      query: {
+        user_id: user?._id,
+        type: 'user_verification',
+        status: { $in: ['cancelled', 'unverified'] },
+        created_at: { $gte: moment().subtract(10, 'minutes').toDate() }
+      },
+      sort: { created_at: -1 }
     },
-    { sort: { created_at: -1 }, session }
+    session
   )
   if (size(existingTokens) >= 3) {
     throw new Error('TOO_MANY_RESEND_VERIFICATION_REQUESTS')
@@ -394,13 +397,16 @@ export const forgotPassword = async (params = {}, session) => {
 
   const existingTokens = await verificationTokenHelper.getVerificationTokens(
     {
-      email,
-      user_id: user?._id,
-      type: 'forgot_password',
-      status: { $in: ['cancelled', 'unverified'] },
-      created_at: { $gte: moment().subtract(10, 'minutes').toDate() }
+      query: {
+        email,
+        user_id: user?._id,
+        type: 'forgot_password',
+        status: { $in: ['cancelled', 'unverified'] },
+        created_at: { $gte: moment().subtract(10, 'minutes').toDate() }
+      },
+      sort: { created_at: -1 }
     },
-    { sort: { created_at: -1 }, session }
+    session
   )
   if (size(existingTokens) >= 3) {
     throw new Error('TOO_MANY_FORGOT_PASSWORD_REQUESTS')
@@ -431,13 +437,16 @@ export const retryForgotPassword = async (params = {}, session) => {
 
   const existingTokens = await verificationTokenHelper.getVerificationTokens(
     {
-      email,
-      user_id: user?._id,
-      type: 'forgot_password',
-      status: { $in: ['cancelled', 'unverified'] },
-      created_at: { $gte: moment().subtract(10, 'minutes').toDate() }
+      query: {
+        email,
+        user_id: user?._id,
+        type: 'forgot_password',
+        status: { $in: ['cancelled', 'unverified'] },
+        created_at: { $gte: moment().subtract(10, 'minutes').toDate() }
+      },
+      sort: { created_at: -1 }
     },
-    { sort: { created_at: -1 }, session }
+    session
   )
   if (size(existingTokens) >= 3) {
     throw new Error('TOO_MANY_FORGOT_PASSWORD_REQUESTS')
@@ -467,7 +476,9 @@ export const verifyForgotPasswordCode = async (params = {}, session) => {
 
   const { email, token } = params || {}
   const verificationToken = await verificationTokenHelper.getAVerificationToken(
-    { email, status: 'unverified', token, type: 'forgot_password' },
+    {
+      query: { email, status: 'unverified', token, type: 'forgot_password' }
+    },
     session
   )
   if (!verificationToken?._id) {

@@ -77,10 +77,13 @@ export const getAuthUserWithRolesAndPermissions = async ({ roles, user_id }) => 
   }
 
   const result = JSON.parse(JSON.stringify(user))
+  const roleNames = map(user?.roles, 'name')
+  const topRole = roleHelper.getTopRoleOfAUser(roleNames)
 
-  result.roles = map(user?.roles, 'name')
-  result.role = roleHelper.getTopRoleOfAUser(user.roles || [])
-  result.permissions = find(user?.roles, (role) => role?.name === user.role)?.permissions || []
+  result.roles = roleNames
+  result.role = topRole
+  const roleWithPermissions = find(user?.roles, (role) => role?.name === topRole)
+  result.permissions = roleWithPermissions?.permissions || []
   result.user_id = user._id
 
   return result

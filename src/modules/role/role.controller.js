@@ -59,11 +59,8 @@ roleController.getRoles = async (req, res, next) => {
   try {
     const query = parse(req.query)
     const options = commonHelper.getOptionsFromQuery(query)
-    const data = await roleHelper.getRolesForQuery(
-      pick(query, ['exclude_collection_ids', 'include_collection_ids', 'name']),
-      options,
-      req.user
-    )
+    const filters = pick(query, ['exclude_collection_ids', 'include_collection_ids', 'names', 'name'])
+    const data = await roleHelper.getRolesForQuery(filters, options, req.user)
 
     res.status(200).json({ data, message: 'SUCCESS' })
   } catch (error) {

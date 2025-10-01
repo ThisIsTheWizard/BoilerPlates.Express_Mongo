@@ -7,7 +7,7 @@ describe('Role Query Tests', () => {
   before(async () => {
     const response = await api.get('/roles', {
       ...authorizedConfig(),
-      params: { name: 'admin' }
+      params: { names: ['admin'] }
     })
     adminRoleId = response?.data?.data?.data?.[0]?._id
     expect(adminRoleId).to.be.a('string')

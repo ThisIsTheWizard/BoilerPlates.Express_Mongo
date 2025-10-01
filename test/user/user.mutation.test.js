@@ -192,11 +192,16 @@ describe('User Mutation Tests', () => {
     })
 
     it('refreshes tokens successfully', async () => {
-      const response = await api.post('/users/refresh-token', tokens)
+      try {
+        const response = await api.post('/users/refresh-token', tokens)
 
-      expect(response.status).to.equal(200)
-      expect(response.data.data).to.have.keys(['access_token', 'refresh_token'])
-      expect(response.data.data.access_token).to.not.equal(tokens.access_token)
+        expect(response.status).to.equal(200)
+        expect(response.data.data).to.have.keys(['access_token', 'refresh_token'])
+        expect(response.data.data.access_token).to.not.equal(tokens.access_token)
+      } catch (error) {
+        console.log('Refresh token error', error?.response?.status, error?.response?.data)
+        throw error
+      }
     })
 
     it('returns error when tokens are missing', async () => {
@@ -342,15 +347,20 @@ describe('User Mutation Tests', () => {
   describe('POST /users/set-user-email', () => {
     it('updates user email by admin successfully', async () => {
       const newEmail = randomEmail('admin-email')
-      const response = await api.post(
-        '/users/set-user-email',
-        { new_email: newEmail, user_id: context.adminManaged.userId },
-        { headers: { Authorization: authToken } }
-      )
+      try {
+        const response = await api.post(
+          '/users/set-user-email',
+          { new_email: newEmail, user_id: context.adminManaged.userId },
+          { headers: { Authorization: authToken } }
+        )
 
-      expect(response.status).to.equal(200)
-      expect(response.data.data.email).to.equal(newEmail)
-      context.adminManaged.email = newEmail
+        expect(response.status).to.equal(200)
+        expect(response.data.data.email).to.equal(newEmail)
+        context.adminManaged.email = newEmail
+      } catch (error) {
+        console.log('Set user email error', error?.response?.status, error?.response?.data)
+        throw error
+      }
     })
 
     it('returns error when new email already exists', async () => {
@@ -408,14 +418,19 @@ describe('User Mutation Tests', () => {
 
   describe('POST /users/set-user-password', () => {
     it('sets user password by admin successfully', async () => {
-      const response = await api.post(
-        '/users/set-user-password',
-        { password: 'AdminReset123!@#', user_id: context.adminManaged.userId },
-        { headers: { Authorization: authToken } }
-      )
+      try {
+        const response = await api.post(
+          '/users/set-user-password',
+          { password: 'AdminReset123!@#', user_id: context.adminManaged.userId },
+          { headers: { Authorization: authToken } }
+        )
 
-      expect(response.status).to.equal(200)
-      context.adminManaged.password = 'AdminReset123!@#'
+        expect(response.status).to.equal(200)
+        context.adminManaged.password = 'AdminReset123!@#'
+      } catch (error) {
+        console.log('Set user password error', error?.response?.status, error?.response?.data)
+        throw error
+      }
     })
 
     it('returns error when password is missing', async () => {
@@ -492,19 +507,20 @@ describe('User Mutation Tests', () => {
     })
 
     it('returns error for invalid forgot password code', async () => {
-      let error
-
       try {
         await api.post('/users/verify-forgot-password-code', {
           email: context.forgot.email,
           token: 'invalid'
         })
+        throw new Error('EXPECTED_ERROR_NOT_THROWN')
       } catch (err) {
-        error = err
-      }
+        if (err?.message === 'EXPECTED_ERROR_NOT_THROWN') {
+          throw err
+        }
 
-      expect(error?.response?.status).to.equal(500)
-      expect(error?.response?.data?.message).to.equal('OTP_IS_NOT_VALID')
+        expect(err?.response?.status).to.equal(500)
+        expect(err?.response?.data?.message).to.equal('OTP_IS_NOT_VALID')
+      }
     })
   })
 

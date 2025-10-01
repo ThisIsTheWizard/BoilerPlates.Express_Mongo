@@ -103,8 +103,8 @@ export const refreshAuthTokensForUser = async (params = {}, session) => {
 
   await deleteAnAuthToken({ query: { refresh_token, user_id } }, session)
 
-  const user = await userHelper.getAUser({ query: { id: user_id } }, session)
-  if (!user?.id) {
+  const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
+  if (!user?._id) {
     throw new Error('USER_NOT_FOUND')
   }
   if (!(user?.status === 'active')) {
@@ -140,8 +140,8 @@ export const revokeAuthTokensForUser = async (params = {}, session) => {
   commonHelper.validateProps([{ field: 'user_id', required: true, type: 'string' }], params)
 
   const { user_id } = params || {}
-  const user = await userHelper.getAUser({ query: { id: user_id } }, session)
-  if (!user?.id) {
+  const user = await userHelper.getAUser({ query: { _id: user_id } }, session)
+  if (!user?._id) {
     throw new Error('USER_IS_NOT_FOUND')
   }
   if (!(user?.status === 'active')) {

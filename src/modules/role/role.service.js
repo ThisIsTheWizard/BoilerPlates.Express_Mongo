@@ -108,29 +108,38 @@ export const updateRolePermissions = async (params, user, session) => {
     throw new CustomError(404, 'ROLE_NOT_FOUND')
   }
 
-  const roleWithExistingPermission = await roleHelper.getARole(
-    { query: { _id: collection_id, 'permissions.permission_id': permission_id } },
-    session
-  )
+  let updatedRole
+  const existingPermission = role?.permissions?.find?.((permission) => permission?.permission === permission_id)
 
-  const updatingData = {}
-  if (roleWithExistingPermission?._id) {
-    updatingData['permissions.$.can_do_the_action'] = can_do_the_action
-    updatingData['permissions.$.updated_by'] = user?.user_id
+  if (existingPermission) {
+    updatedRole = await updateARole(
+      { query: { _id: collection_id, 'permissions.permission': permission_id } },
+      {
+        'permissions.$.can_do_the_action': can_do_the_action,
+        'permissions.$.updated_by': user?.user_id
+      },
+      session
+    )
   } else {
-    updatingData['$push'] = {
-      permissions: {
-        can_do_the_action,
-        created_by: user?.user_id,
-        permission_id,
-        updated_by: user?.user_id
-      }
-    }
+    updatedRole = await updateARole(
+      { query: { _id: collection_id } },
+      {
+        $push: {
+          permissions: {
+            can_do_the_action,
+            created_by: user?.user_id,
+            permission: permission_id,
+            updated_by: user?.user_id
+          }
+        }
+      },
+      session
+    )
   }
 
-  return updateARole(
-    { query: { _id: collection_id, 'permissions.permission_id': permission_id } },
-    updatingData,
-    session
-  )
+  if (!updatedRole?._id) {
+    throw new CustomError(500, 'COULD_NOT_UPDATE_ROLE_PERMISSIONS')
+  }
+
+  return updatedRole
 }

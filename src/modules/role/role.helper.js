@@ -31,8 +31,17 @@ export const prepareRoleQuery = (params = {}) => {
       ]
     }
   }
-  if (size(params?.names)) {
-    query.name = { $in: params.names }
+
+  const names = []
+
+  if (Array.isArray(params?.names)) {
+    names.push(...params.names)
+  }
+  if (params?.name) {
+    names.push(params.name)
+  }
+  if (size(names)) {
+    query.name = { $in: names }
   }
 
   return query
@@ -47,10 +56,10 @@ export const getARoleForQuery = async (params) => {
   return role
 }
 
-export const getRolesForQuery = async (params) => {
-  const { limit, skip, sort } = params?.options || {}
+export const getRolesForQuery = async (queryParams = {}, options = {}) => {
+  const { limit, skip, sort } = options || {}
 
-  const query = prepareRoleQuery(params?.query || {})
+  const query = prepareRoleQuery(queryParams)
   const data = await getRoles({
     limit,
     populate: ['permissions'],

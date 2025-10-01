@@ -6,21 +6,6 @@ const api = axios.create({
   timeout: 10000
 })
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error?.response?.status >= 500) {
-      console.log('API 5xx response', {
-        data: error?.response?.data,
-        status: error?.response?.status,
-        url: error?.config?.url
-      })
-    }
-
-    return Promise.reject(error)
-  }
-)
-
 let authToken = null
 before(async function () {
   try {

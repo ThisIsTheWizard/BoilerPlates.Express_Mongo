@@ -2,19 +2,37 @@ import { api, authToken, expect } from 'test/setup'
 
 describe('Role Mutation Tests', () => {
   const authorizedConfig = () => ({ headers: { Authorization: authToken } })
-  const testRoleName = `moderator-${Date.now()}`
-  const updatedRoleName = `${testRoleName}-updated`
+  const testRoleName = 'moderator'
+  const updatedRoleName = testRoleName
 
   let createdRoleId
   let adminRoleId
+  let shouldRestoreModerator = false
 
   before(async () => {
-    const response = await api.get('/roles', {
+    const adminResponse = await api.get('/roles', {
       headers: { Authorization: authToken },
-      params: { name: 'admin' }
+      params: { names: ['admin'] }
     })
-    adminRoleId = response?.data?.data?.data?.[0]?._id
+    adminRoleId = adminResponse?.data?.data?.data?.[0]?._id
     expect(adminRoleId).to.be.a('string')
+
+    const moderatorResponse = await api.get('/roles', {
+      headers: { Authorization: authToken },
+      params: { names: ['moderator'] }
+    })
+    const existingModerator = moderatorResponse?.data?.data?.data?.[0]
+    if (existingModerator) {
+      shouldRestoreModerator = true
+      await api.delete(`/roles/${existingModerator._id}`, authorizedConfig())
+    }
+
+  })
+
+  after(async () => {
+    if (shouldRestoreModerator) {
+      await api.post('/roles', { name: 'moderator' }, authorizedConfig())
+    }
   })
 
   describe('POST /roles', () => {
