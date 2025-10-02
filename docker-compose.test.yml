@@ -27,6 +27,7 @@ services:
 
   mongo_init_replica:
     image: mongo
+    container_name: mongo_init_replica_container
     depends_on:
       - mongo_test_one
       - mongo_test_two

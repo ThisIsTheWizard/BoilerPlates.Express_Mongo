@@ -17,7 +17,7 @@
     "format": "prettier . --write",
     "lint": "eslint --quiet . --ignore-pattern build/ --ignore-pattern test/",
     "lint-fix": "eslint --quiet . --fix",
-    "pretest": "pnpm run compose:test-down && pnpm run compose:test-up && docker logs -f node_server_test_container",
+    "pretest": "pnpm run compose:test-down && pnpm run compose:test-up && docker logs -f mongo_test_one_container && docker logs -f mongo_test_two_container && docker logs -f mongo_init_replica_container && docker logs -f node_server_test_container",
     "test": "mocha --require @babel/register --file test/setup.js --recursive test/**/*.test.js --timeout 12000"
   },
   "dependencies": {
