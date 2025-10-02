@@ -30,6 +30,7 @@ jobs:
         run: |
           openssl rand -base64 756 > ./mongo-keyfile
           chmod 400 ./mongo-keyfile
+          cat ./mongo-keyfile  # Debug: Show keyfile content
 
       - name: Install dependencies
         run: npm i -g pnpm && pnpm i
