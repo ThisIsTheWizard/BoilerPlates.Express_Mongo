@@ -26,6 +26,9 @@ jobs:
         with:
           node-version: '22.x'
 
+      - name: Setting up Mongo keyfile permissions
+        run: chmod 400 ./mongo_keyfile
+
       - name: Install dependencies
         run: npm i -g pnpm && pnpm i
 
