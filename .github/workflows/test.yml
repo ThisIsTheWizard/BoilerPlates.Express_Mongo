@@ -26,8 +26,10 @@ jobs:
         with:
           node-version: '22.x'
 
-      - name: Setting up Mongo keyfile permissions
-        run: chmod 400 ./mongo-keyfile
+      - name: Generate and set permissions for Mongo keyfile
+        run: |
+          openssl rand -base64 756 > ./mongo-keyfile
+          chmod 400 ./mongo-keyfile
 
       - name: Install dependencies
         run: npm i -g pnpm && pnpm i
