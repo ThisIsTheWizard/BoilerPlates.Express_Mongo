@@ -17,7 +17,7 @@
     "format": "prettier . --write",
     "lint": "eslint --quiet . --ignore-pattern build/ --ignore-pattern test/",
     "lint-fix": "eslint --quiet . --fix",
-    "pretest": "pnpm run compose:test-down && pnpm run compose:test-up && sleep 5 && echo '--- DEBUG: Keyfile content inside container ---' && docker compose -f docker-compose.test.yml exec mongo_test_one cat /data/keyfile && echo '--- END DEBUG ---' && docker compose -f docker-compose.test.yml logs",
+    "pretest": "pnpm run compose:test-down && pnpm run compose:test-up && sleep 5 && echo '--- DEBUG: Keyfile content inside container ---' && docker compose -f docker-compose.test.yml exec mongo_test_one_container cat /data/keyfile && echo '--- END DEBUG ---' && docker compose -f docker-compose.test.yml logs",
     "test": "mocha --require @babel/register --file test/setup.js --recursive test/**/*.test.js --timeout 12000"
   },
   "dependencies": {

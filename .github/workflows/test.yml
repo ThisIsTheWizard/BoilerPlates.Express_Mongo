@@ -28,7 +28,7 @@ jobs:
 
       - name: Generate and set permissions for Mongo keyfile
         run: |
-          openssl rand -base64 756 > ./mongo-keyfile
+          openssl rand -base64 1024 > ./mongo-keyfile
           chmod 400 ./mongo-keyfile
           cat ./mongo-keyfile  # Debug: Show keyfile content
 
