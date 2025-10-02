@@ -33,11 +33,16 @@ services:
       - mongo_test_two
     entrypoint: >
       bash -c "
-        echo 'Waiting for MongoDB to be ready...' &&
-        until mongosh --host mongo_test_one:27017 -u admin -p 4567890321 --authenticationDatabase admin --eval 'db.adminCommand(\"ping\")' >/dev/null 2>&1; do sleep 2; done &&
-        until mongosh --host mongo_test_two:27017 -u admin -p 4567890321 --authenticationDatabase admin --eval 'db.adminCommand(\"ping\")' >/dev/null 2>&1; do sleep 2; done &&
+        echo 'Waiting for MongoDB nodes to be ready...' &&
+
+        # Wait for servers to respond to a simple ping without authentication
+        until mongosh --host mongo_test_one:27017 --eval 'db.adminCommand(\"ping\")' >/dev/null 2>&1; do sleep 2; done &&
+        until mongosh --host mongo_test_two:27017 --eval 'db.adminCommand(\"ping\")' >/dev/null 2>&1; do sleep 2; done &&
+
         echo 'Both nodes are up, initiating replica set...' &&
-        mongosh --host mongo_test_one:27017 -u admin -p 4567890321 --authenticationDatabase admin --eval '
+
+        # The rs.initiate command also does not need credentials when run against a fresh set
+        mongosh --host mongo_test_one:27017 --eval '
           rs.initiate({
             _id: \"rs0\",
             members: [
@@ -45,7 +50,7 @@ services:
               { _id: 1, host: \"mongo_test_two:27017\" }
             ]
           })
-        ' || true
+        '
       "
 
   node_server_test:
