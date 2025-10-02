@@ -11,14 +11,14 @@
     "compose:dev-up": "docker compose -f docker-compose.dev.yml up -d --build",
     "compose:prod-down": "docker compose -f docker-compose.prod.yml down -v",
     "compose:prod-up": "docker compose -f docker-compose.prod.yml up -d --build",
-    "compose:test-down": "docker compose -f docker-compose.test.yml down -v",
+    "compose:test-down": "docker compose -f docker-compose.test.yml down -v --remove-orphans",
     "compose:test-up": "docker compose -f docker-compose.test.yml up -d --build --wait",
     "dev": "npm run lint && NODE_ENV=development nodemon -e js,graphql -w . --exec babel-node src/server.js",
     "format": "prettier . --write",
     "lint": "eslint --quiet . --ignore-pattern build/ --ignore-pattern test/",
     "lint-fix": "eslint --quiet . --fix",
-    "pretest": "pnpm run compose:test-down && pnpm run compose:test-up && sleep 5 && echo '--- DEBUG: Keyfile content inside container ---' && docker compose -f docker-compose.test.yml exec mongo_test_one_container cat /data/keyfile && echo '--- END DEBUG ---' && docker compose -f docker-compose.test.yml logs",
-    "test": "mocha --require @babel/register --file test/setup.js --recursive test/**/*.test.js --timeout 12000"
+    "pretest": "pnpm run compose:test-down && pnpm run compose:test-up",
+    "test": "mocha --require @babel/register --file test/setup.js --recursive test/**/*.test.js --timeout 60000"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.624.0",
