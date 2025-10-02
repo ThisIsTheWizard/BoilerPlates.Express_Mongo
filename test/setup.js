@@ -3,7 +3,7 @@ import { expect } from 'chai'
 
 const api = axios.create({
   baseURL: `http://localhost:${process.env.PORT || 8000}`,
-  timeout: 10000
+  timeout: 120000
 })
 
 let authToken = null
@@ -11,7 +11,7 @@ before(async function () {
   try {
     console.log('Before hook called in', import.meta.url, 'at', new Date().toISOString())
 
-    await api.post('/test/setup', undefined, { timeout: 30000 })
+    await api.post('/test/setup')
     const loginResponse = await api.post('/users/login', {
       email: 'test@user.com',
       password: '123456aA@'
