@@ -37,7 +37,7 @@ export const roleRouter = Router()
  *             schema:
  *               $ref: '#/components/schemas/Role'
  */
-roleRouter.post('/', authorizer(), roleController.createARole)
+roleRouter.post('/', authorizer(['admin', 'developer']), roleController.createARole)
 
 /**
  * @swagger
@@ -73,7 +73,7 @@ roleRouter.post('/', authorizer(), roleController.createARole)
  *             schema:
  *               $ref: '#/components/schemas/Role'
  */
-roleRouter.put('/:collection_id', authorizer(), roleController.updateARole)
+roleRouter.put('/:collection_id', authorizer(['admin', 'developer']), roleController.updateARole)
 
 /**
  * @swagger
@@ -113,7 +113,7 @@ roleRouter.put('/:collection_id', authorizer(), roleController.updateARole)
  *             schema:
  *               $ref: '#/components/schemas/Role'
  */
-roleRouter.put('/:collection_id/permissions', authorizer(), roleController.updateRolePermissions)
+roleRouter.put('/:collection_id/permissions', authorizer(['admin', 'developer']), roleController.updateRolePermissions)
 
 /**
  * @swagger
@@ -139,7 +139,7 @@ roleRouter.put('/:collection_id/permissions', authorizer(), roleController.updat
  *             schema:
  *               $ref: '#/components/schemas/Role'
  */
-roleRouter.delete('/:collection_id', authorizer(), roleController.deleteARole)
+roleRouter.delete('/:collection_id', authorizer(['admin', 'developer']), roleController.deleteARole)
 
 /**
  * @swagger
@@ -198,7 +198,7 @@ roleRouter.delete('/:collection_id', authorizer(), roleController.deleteARole)
  *               items:
  *                 $ref: '#/components/schemas/Role'
  */
-roleRouter.get('/', authorizer(), roleController.getRoles)
+roleRouter.get('/', authorizer(['admin', 'developer']), roleController.getRoles)
 
 /**
  * @swagger
@@ -224,7 +224,7 @@ roleRouter.get('/', authorizer(), roleController.getRoles)
  *             schema:
  *               $ref: '#/components/schemas/Role'
  */
-roleRouter.get('/:collection_id', authorizer(), roleController.getARole)
+roleRouter.get('/:collection_id', authorizer(['admin', 'developer']), roleController.getARole)
 
 /**
  * @swagger
@@ -260,7 +260,7 @@ roleRouter.get('/:collection_id', authorizer(), roleController.getARole)
  *             schema:
  *               $ref: '#/components/schemas/Role'
  */
-roleRouter.put('/:collection_id', authorizer(), roleController.updateARole)
+roleRouter.put('/:collection_id', authorizer(['admin', 'developer']), roleController.updateARole)
 
 /**
  * @swagger
@@ -286,7 +286,7 @@ roleRouter.put('/:collection_id', authorizer(), roleController.updateARole)
  *             schema:
  *               $ref: '#/components/schemas/Role'
  */
-roleRouter.delete('/:collection_id', authorizer(), roleController.deleteARole)
+roleRouter.delete('/:collection_id', authorizer(['admin', 'developer']), roleController.deleteARole)
 
 /**
  * @swagger
@@ -345,7 +345,7 @@ roleRouter.delete('/:collection_id', authorizer(), roleController.deleteARole)
  *               items:
  *                 $ref: '#/components/schemas/Role'
  */
-roleRouter.get('/', authorizer(), roleController.getRoles)
+roleRouter.get('/', authorizer(['admin', 'developer']), roleController.getRoles)
 
 /**
  * @swagger
@@ -371,4 +371,4 @@ roleRouter.get('/', authorizer(), roleController.getRoles)
  *             schema:
  *               $ref: '#/components/schemas/Role'
  */
-roleRouter.get('/:collection_id', authorizer(), roleController.getARole)
+roleRouter.get('/:collection_id', authorizer(['admin', 'developer']), roleController.getARole)
