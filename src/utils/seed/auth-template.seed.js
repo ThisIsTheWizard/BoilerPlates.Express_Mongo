@@ -1,7 +1,15 @@
 import { AuthTemplate } from 'src/modules/models'
 
-export const seedAuthTemplates = async () =>
-  AuthTemplate.insertMany([
+export const seedAuthTemplates = async () => {
+  const count = await AuthTemplate.countDocuments({
+    event: { $in: ['send_user_verification_token', 'send_forgot_password_token'] }
+  })
+  if (count > 0) {
+    console.log('Auth templates already seeded. Skipping seeding.')
+    return
+  }
+
+  return AuthTemplate.insertMany([
     {
       event: 'send_user_verification_token',
       body: '<h1>Welcome, {{username}}!</h1><p>Thank you for registering with us. Please verify your email with this OTP: <strong>{{token}}</strong>.</p><p>Best regards,<br/>The Team</p>',
@@ -13,3 +21,4 @@ export const seedAuthTemplates = async () =>
       subject: 'Password Reset Request'
     }
   ])
+}
