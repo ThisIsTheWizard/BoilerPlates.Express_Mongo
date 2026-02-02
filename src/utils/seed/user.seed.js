@@ -15,7 +15,7 @@ export const seedTestUsers = async (roles) => {
 
   const users = await User.insertMany([
     {
-      email: 'admin@test.com',
+      email: 'admin@wizardcld.com',
       first_name: 'Admin',
       last_name: 'User',
       password: commonService.generateHashPassword('123456aA@'),
