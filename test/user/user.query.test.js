@@ -3,11 +3,11 @@ import { api, expect, loginAndGetTokens } from 'test/setup'
 describe('User Query Tests', () => {
   describe('GET /users/me', () => {
     it('returns authenticated user details', async () => {
-      const tokens = await loginAndGetTokens({ email: 'user@test.com', password: '123456aA@' })
+      const tokens = await loginAndGetTokens({ email: 'user@wizardcld.com', password: '123456aA@' })
       const response = await api.get('/users/me', { headers: { Authorization: tokens.access_token } })
 
       expect(response.status).to.equal(200)
-      expect(response.data.data).to.include({ email: 'user@test.com' })
+      expect(response.data.data).to.include({ email: 'user@wizardcld.com' })
     })
 
     it('returns 401 when token is invalid', async () => {

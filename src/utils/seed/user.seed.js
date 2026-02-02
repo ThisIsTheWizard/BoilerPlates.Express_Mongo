@@ -26,7 +26,7 @@ export const seedTestUsers = async (roles) => {
       status: 'active'
     },
     {
-      email: 'developer@test.com',
+      email: 'developer@wizardcld.com',
       first_name: 'Developer',
       last_name: 'User',
       password: commonService.generateHashPassword('123456aA@'),
@@ -37,7 +37,7 @@ export const seedTestUsers = async (roles) => {
       status: 'active'
     },
     {
-      email: 'moderator@test.com',
+      email: 'moderator@wizardcld.com',
       first_name: 'Moderator',
       last_name: 'User',
       password: commonService.generateHashPassword('123456aA@'),
@@ -48,7 +48,7 @@ export const seedTestUsers = async (roles) => {
       status: 'active'
     },
     {
-      email: 'user@test.com',
+      email: 'user@wizardcld.com',
       first_name: 'Test',
       last_name: 'User',
       password: commonService.generateHashPassword('123456aA@'),
