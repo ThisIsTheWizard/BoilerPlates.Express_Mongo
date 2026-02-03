@@ -2,7 +2,7 @@ services:
   keyfile-generator:
     image: mongo
     container_name: keyfile_generator_dev_container
-    restart: "no"
+    restart: 'no'
     command: >
       bash -c "
         set -e;

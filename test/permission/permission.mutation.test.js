@@ -7,11 +7,7 @@ describe('Permission Mutation Tests', () => {
     let createdPermissionId
 
     it('creates a permission successfully', async () => {
-      const response = await api.post(
-        '/permissions',
-        { action: 'create', module: 'permission' },
-        authorizedConfig()
-      )
+      const response = await api.post('/permissions', { action: 'create', module: 'permission' }, authorizedConfig())
 
       expect(response.status).to.equal(201)
       expect(response.data.data).to.include({ action: 'create', module: 'permission' })
@@ -37,20 +33,12 @@ describe('Permission Mutation Tests', () => {
     let permissionId
 
     before(async () => {
-      const createResponse = await api.post(
-        '/permissions',
-        { action: 'read', module: 'role' },
-        authorizedConfig()
-      )
+      const createResponse = await api.post('/permissions', { action: 'read', module: 'role' }, authorizedConfig())
       permissionId = createResponse.data.data._id
     })
 
     it('updates a permission successfully', async () => {
-      const response = await api.put(
-        `/permissions/${permissionId}`,
-        { action: 'update' },
-        authorizedConfig()
-      )
+      const response = await api.put(`/permissions/${permissionId}`, { action: 'update' }, authorizedConfig())
 
       expect(response.status).to.equal(200)
       expect(response.data.data.action).to.equal('update')
@@ -75,11 +63,7 @@ describe('Permission Mutation Tests', () => {
     let permissionId
 
     before(async () => {
-      const createResponse = await api.post(
-        '/permissions',
-        { action: 'delete', module: 'user' },
-        authorizedConfig()
-      )
+      const createResponse = await api.post('/permissions', { action: 'delete', module: 'user' }, authorizedConfig())
       permissionId = createResponse.data.data._id
     })
 

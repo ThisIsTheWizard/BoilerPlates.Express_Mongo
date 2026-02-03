@@ -26,7 +26,6 @@ describe('Role Mutation Tests', () => {
       shouldRestoreModerator = true
       await api.delete(`/roles/${existingModerator._id}`, authorizedConfig())
     }
-
   })
 
   after(async () => {
@@ -60,11 +59,7 @@ describe('Role Mutation Tests', () => {
 
   describe('PUT /roles/:collection_id', () => {
     it('updates a role successfully', async () => {
-      const response = await api.put(
-        `/roles/${createdRoleId}`,
-        { name: updatedRoleName },
-        authorizedConfig()
-      )
+      const response = await api.put(`/roles/${createdRoleId}`, { name: updatedRoleName }, authorizedConfig())
 
       expect(response.status).to.equal(200)
       expect(response.data.data.name).to.equal(updatedRoleName)
